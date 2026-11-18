@@ -45,7 +45,7 @@ create or replace function public.roll_aura()
 returns table(aura_id text, tier integer, total_rolls bigint)
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = public, pg_temp, pg_temp
 as $$
 declare
   v_user uuid := auth.uid();
@@ -63,6 +63,7 @@ declare
   }'::jsonb;
   v_item record;
   v_new_total bigint;
+  v_name text;
   v_name text;
 begin
   if v_user is null then
@@ -121,6 +122,11 @@ select display_name, total_rolls, best_tier
 from public.player_profiles
 order by best_tier desc, total_rolls desc
 limit 100;
+revoke select on public.player_profiles from anon, authenticated;
+grant select (display_name, total_rolls, best_tier, equipped_aura_id) on public.player_profiles to anon, authenticated;
+grant select on public.player_inventory, public.roll_history to authenticated;
+revoke insert, update, delete on public.player_profiles, public.player_inventory, public.roll_history from anon, authenticated;
+grant update (equipped_aura_id) on public.player_profiles to authenticated;
 revoke select on public.player_profiles from anon, authenticated;
 grant select (display_name, total_rolls, best_tier, equipped_aura_id) on public.player_profiles to anon, authenticated;
 grant select on public.player_inventory, public.roll_history to authenticated;
