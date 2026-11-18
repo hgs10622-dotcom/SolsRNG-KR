@@ -30,7 +30,7 @@ const A=[
 ["infinity","인피니티","초월",7,3,"♾️","#fff0a6","끝을 알 수 없는 무한의 빛."],
 ["origin","오리진","초월",7,1,"✴️","#fff0a6","모든 오라의 시작이자 기원."]
 ].map(x=>({id:x[0],name:x[1],rarity:x[2],tier:x[3],weight:x[4],emoji:x[5],color:x[6],desc:x[7]}));
-const tiers=[["일반","90%","#c3cfdf",90],["고급","9.5%","#7de3a2",9.5],["희귀","0.35%","#70baff",.35],["영웅","0.015%","#c28aff",.015],["전설","0.003%","#ffd16e",.003],["신화","0.00063%","#ff8cba",.00063],["천상","0.000125%","#8cecff",.000125],["초월","0.000015%","#fff0a6",.000015]];
+const tiers=[["일반","#c3cfdf"],["고급","#7de3a2"],["희귀","#70baff"],["영웅","#c28aff"],["전설","#ffd16e"],["신화","#ff8cba"],["천상","#8cecff"],["초월","#fff0a6"]].map(t=>{let total=A.reduce((s,a)=>s+a.weight,0),w=A.filter(a=>a.rarity===t[0]).reduce((s,a)=>s+a.weight,0),p=w/total*100;return [t[0],p.toLocaleString("ko-KR",{maximumSignificantDigits:4})+"%",t[1],p]});
 const $=id=>document.getElementById(id),S={rolls:0,bag:{},equipped:null,best:-1,last:null,history:[]};let busy=false,autoOn=false,autoTimer=null,tab="inventory";
 function save(){localStorage.setItem("aether-save",JSON.stringify(S))}
 function load(){try{let d=JSON.parse(localStorage.getItem("aether-save")||"null");if(d){S.rolls=+d.rolls||0;S.bag=d.bag||{};S.equipped=d.equipped||null;S.best=Number.isFinite(d.best)?d.best:-1;S.history=Array.isArray(d.history)?d.history:[]}}catch(e){}}
