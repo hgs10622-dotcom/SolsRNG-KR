@@ -13,13 +13,16 @@ Roblox가 아닌 웹브라우저용 오라 수집 시뮬레이터입니다.
 - 최근 획득 기록
 - 브라우저 자동 저장(localStorage)
 - 저장 데이터 JSON 내보내기
-- 모바일 반응형 화면
+- 모바일 반응형 UI
 
-## GitHub Pages 공개
-1. 저장소의 Settings → Pages로 이동합니다.
-2. Deploy from a branch 선택
-3. Branch: `main`, Folder: `/(root)` 선택 후 Save
-4. 생성된 Pages 주소에서 게임을 플레이합니다.
+## GitHub Pages 배포
+1. 저장소 Settings → Pages로 이동합니다.
+2. Build and deployment의 Source를 **GitHub Actions**로 설정합니다.
+3. `.github/workflows/pages.yml`이 main 브랜치 변경 시 자동 배포합니다.
+4. 기본 주소: https://hgs10622-dotcom.github.io/SolsRNG-KR/
 
-## 참고
-모든 뽑기는 무료이며 현금 결제나 현금성 재화를 사용하지 않습니다. 저장 데이터는 현재 브라우저에만 저장됩니다.
+## 온라인 DB 준비
+공유 계정·인벤토리·랭킹을 위한 Supabase SQL 스키마가 `supabase/schema.sql`에 있습니다. 설정 순서는 [ONLINE_SETUP.md](ONLINE_SETUP.md)를 확인하세요. 현재 브라우저 버전은 Supabase 프로젝트 연결 전까지 로컬 저장 모드입니다.
+
+## 유의사항
+모든 뽑기는 무료이며 현금 결제나 현금성 재화를 사용하지 않습니다. 브라우저 저장 데이터는 현재 기기에만 저장됩니다.
