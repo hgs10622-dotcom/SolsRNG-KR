@@ -31,8 +31,9 @@ alter table public.player_inventory enable row level security;
 alter table public.roll_history enable row level security;
 
 drop policy if exists "profiles readable" on public.player_profiles;
+drop policy if exists "public leaderboard profile fields" on public.player_profiles;
 drop policy if exists "players read own profile" on public.player_profiles;
-create policy "public leaderboard profile fields" on public.player_profiles for select to anon, authenticated using (true);
+create policy "players read own profile" on public.player_profiles for select to authenticated using ((select auth.uid()) = user_id);
 drop policy if exists "players update own profile" on public.player_profiles;
 create policy "players update own profile" on public.player_profiles for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 drop policy if exists "players read own inventory" on public.player_inventory;
@@ -63,6 +64,7 @@ declare
   }'::jsonb;
   v_item record;
   v_new_total bigint;
+  v_name text;
   v_name text;
   v_name text;
 begin
@@ -117,19 +119,50 @@ $$;
 revoke all on function public.roll_aura() from public;
 grant execute on function public.roll_aura() to authenticated;
 
-create or replace view public.global_leaderboard with (security_invoker = true) as
-select display_name, total_rolls, best_tier
-from public.player_profiles
-order by best_tier desc, total_rolls desc
-limit 100;
-revoke select on public.player_profiles from anon, authenticated;
-grant select (display_name, total_rolls, best_tier, equipped_aura_id) on public.player_profiles to anon, authenticated;
+
+-- Keep public leaderboard data separate from private player profile rows.
+create table if not exists public.global_leaderboard (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  display_name text not null,
+  total_rolls bigint not null default 0,
+  best_tier integer not null default 0,
+  updated_at timestamptz not null default now()
+);
+alter table public.global_leaderboard enable row level security;
+drop policy if exists "public leaderboard readable" on public.global_leaderboard;
+create policy "public leaderboard readable" on public.global_leaderboard
+for select to anon, authenticated using (true);
+revoke all on public.global_leaderboard from anon, authenticated;
+grant select (display_name, total_rolls, best_tier) on public.global_leaderboard to anon, authenticated;
+
+create or replace function public.sync_global_leaderboard()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  insert into public.global_leaderboard(user_id, display_name, total_rolls, best_tier, updated_at)
+  values (new.user_id, new.display_name, new.total_rolls, new.best_tier, now())
+  on conflict (user_id) do update
+  set display_name = excluded.display_name,
+      total_rolls = excluded.total_rolls,
+      best_tier = excluded.best_tier,
+      updated_at = now();
+  return new;
+end;
+$$;
+revoke all on function public.sync_global_leaderboard() from public, anon, authenticated;
+drop trigger if exists sync_global_leaderboard_trigger on public.player_profiles;
+create trigger sync_global_leaderboard_trigger
+after insert or update of display_name, total_rolls, best_tier
+on public.player_profiles
+for each row execute function public.sync_global_leaderboard();
+
+grant usage on schema public to authenticated, anon;
+grant select on public.player_profiles to authenticated;
 grant select on public.player_inventory, public.roll_history to authenticated;
 revoke insert, update, delete on public.player_profiles, public.player_inventory, public.roll_history from anon, authenticated;
 grant update (equipped_aura_id) on public.player_profiles to authenticated;
-revoke select on public.player_profiles from anon, authenticated;
-grant select (display_name, total_rolls, best_tier, equipped_aura_id) on public.player_profiles to anon, authenticated;
-grant select on public.player_inventory, public.roll_history to authenticated;
-revoke insert, update, delete on public.player_profiles, public.player_inventory, public.roll_history from anon, authenticated;
-grant update (equipped_aura_id) on public.player_profiles to authenticated;
-grant select on public.global_leaderboard to anon, authenticated;
+revoke all on function public.roll_aura() from public, anon;
+grant execute on function public.roll_aura() to authenticated;
