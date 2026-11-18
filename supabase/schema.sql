@@ -42,8 +42,9 @@ drop policy if exists "players read own history" on public.roll_history;
 create policy "players read own history" on public.roll_history for select using (auth.uid() = user_id);
 
 -- Clients cannot directly insert or change inventory/history. Rolls are performed by this server-side function.
+drop function if exists public.roll_aura();
 create or replace function public.roll_aura()
-returns table(aura_id text, tier integer, total_rolls bigint)
+returns table(result_aura_id text, result_tier integer, result_total_rolls bigint)
 language plpgsql
 security definer
 set search_path = '', pg_temp
@@ -114,8 +115,9 @@ begin
   return query select v_aura, v_tier, v_new_total;
 end;
 $$;
-revoke all on function public.roll_aura() from public;
+revoke all on function public.roll_aura() from public, anon;
 grant execute on function public.roll_aura() to authenticated;
+
 
 
 -- Keep public leaderboard data separate from private player profile rows.
