@@ -46,7 +46,7 @@ create or replace function public.roll_aura()
 returns table(aura_id text, tier integer, total_rolls bigint)
 language plpgsql
 security definer
-set search_path = public, pg_temp, pg_temp
+set search_path = '', pg_temp
 as $$
 declare
   v_user uuid := auth.uid();
@@ -139,7 +139,7 @@ create or replace function public.sync_global_leaderboard()
 returns trigger
 language plpgsql
 security definer
-set search_path = public, pg_temp
+set search_path = ''
 as $$
 begin
   insert into public.global_leaderboard(user_id, display_name, total_rolls, best_tier, updated_at)
