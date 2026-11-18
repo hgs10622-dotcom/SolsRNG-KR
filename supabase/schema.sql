@@ -4,7 +4,8 @@ create table if not exists public.player_profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   display_name text not null default '',
   total_rolls bigint not null default 0,
-  best_tier integer not null default 0,
+  best_tier integer not null default 0 check (best_tier between 0 and 7),
+  equipped_aura_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -30,7 +31,8 @@ alter table public.player_inventory enable row level security;
 alter table public.roll_history enable row level security;
 
 drop policy if exists "profiles readable" on public.player_profiles;
-create policy "profiles readable" on public.player_profiles for select using (true);
+drop policy if exists "players read own profile" on public.player_profiles;
+create policy "public leaderboard profile fields" on public.player_profiles for select to anon, authenticated using (true);
 drop policy if exists "players update own profile" on public.player_profiles;
 create policy "players update own profile" on public.player_profiles for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 drop policy if exists "players read own inventory" on public.player_inventory;
@@ -43,7 +45,7 @@ create or replace function public.roll_aura()
 returns table(aura_id text, tier integer, total_rolls bigint)
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_user uuid := auth.uid();
@@ -61,12 +63,14 @@ declare
   }'::jsonb;
   v_item record;
   v_new_total bigint;
+  v_name text;
 begin
   if v_user is null then
     raise exception 'Authentication required';
   end if;
+  v_name := coalesce(nullif(auth.jwt()->'user_metadata'->>'display_name',''), 'Player-' || upper(substr(replace(v_user::text, '-', ''), 1, 6)));
   insert into public.player_profiles(user_id, display_name)
-  values (v_user, 'Player-' || upper(substr(replace(v_user::text, '-', ''), 1, 6)))
+  values (v_user, v_name)
   on conflict (user_id) do nothing;
 
   select random() * sum((value::text)::double precision)
@@ -112,9 +116,14 @@ $$;
 revoke all on function public.roll_aura() from public;
 grant execute on function public.roll_aura() to authenticated;
 
-create or replace view public.global_leaderboard as
+create or replace view public.global_leaderboard with (security_invoker = true) as
 select display_name, total_rolls, best_tier
 from public.player_profiles
 order by best_tier desc, total_rolls desc
 limit 100;
+revoke select on public.player_profiles from anon, authenticated;
+grant select (display_name, total_rolls, best_tier, equipped_aura_id) on public.player_profiles to anon, authenticated;
+grant select on public.player_inventory, public.roll_history to authenticated;
+revoke insert, update, delete on public.player_profiles, public.player_inventory, public.roll_history from anon, authenticated;
+grant update (equipped_aura_id) on public.player_profiles to authenticated;
 grant select on public.global_leaderboard to anon, authenticated;
