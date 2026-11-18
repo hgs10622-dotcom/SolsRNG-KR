@@ -106,8 +106,8 @@ begin
   values (v_user, v_aura, v_tier);
 
   update public.player_profiles
-  set total_rolls = total_rolls + 1,
-      best_tier = greatest(best_tier, v_tier),
+  set total_rolls = public.player_profiles.total_rolls + 1,
+      best_tier = greatest(public.player_profiles.best_tier, v_tier),
       updated_at = now()
   where user_id = v_user
   returning player_profiles.total_rolls into v_new_total;
