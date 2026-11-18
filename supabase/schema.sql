@@ -98,7 +98,7 @@ begin
 
   insert into public.player_inventory(user_id, aura_id, quantity)
   values (v_user, v_aura, 1)
-  on conflict (user_id, aura_id)
+  on conflict on constraint player_inventory_pkey
   do update set quantity = public.player_inventory.quantity + 1;
 
   insert into public.roll_history(user_id, aura_id, tier)
