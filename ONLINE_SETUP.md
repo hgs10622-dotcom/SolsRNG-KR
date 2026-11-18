@@ -1,30 +1,31 @@
-# AETHER RNG online services setup
+# AETHER RNG 온라인 서비스
 
-This repository now contains a GitHub Pages deployment workflow and a Supabase database schema. The hosted site can be served by GitHub Pages; shared accounts and player data require a Supabase project.
+## 구성 완료
+- Supabase 프로젝트: `AETHER-RNG`
+- 프로젝트 리전: Seoul (`ap-northeast-2`)
+- 데이터베이스: `player_profiles`, `player_inventory`, `roll_history`
+- RLS 정책 및 서버 측 `roll_aura()` RPC
+- 전체 플레이어 랭킹 뷰
+- 브라우저용 Supabase 설정 파일
+- GitHub Pages 자동 배포 워크플로
 
-## 1. Publish the static site
-1. Open repository Settings → Pages.
-2. Choose **GitHub Actions** as the Build and deployment source.
-3. The workflow at `.github/workflows/pages.yml` deploys automatically on every push to `main`.
-4. The default address is `https://hgs10622-dotcom.github.io/SolsRNG-KR/`.
+## 온라인 기능
+1. 웹사이트에서 이메일과 비밀번호로 회원가입합니다.
+2. 이메일 인증이 요구되면 인증 메일을 확인합니다.
+3. 로그인한 뒤 뽑기를 실행하면 서버에서 결과를 결정하고 DB에 기록합니다.
+4. 같은 계정으로 다른 기기에서 로그인하면 저장된 오라와 기록을 불러옵니다.
+5. 랭킹 탭에서 공개 플레이어 순위를 확인할 수 있습니다.
 
-## 2. Create the shared database
-1. Create a project at https://supabase.com (free tier is sufficient for a prototype).
-2. Open SQL Editor → New query.
-3. Paste and run all of `supabase/schema.sql`.
-4. In Project Settings → API, copy the Project URL and the **publishable/anon public key**.
-5. Never put a service-role key in browser code or commit it to GitHub.
+## GitHub Pages
+기본 주소: https://hgs10622-dotcom.github.io/SolsRNG-KR/
 
-## 3. Configure the browser client
-Create `supabase-config.js` locally with:
-```js
-window.AETHER_SUPABASE_URL = "https://YOUR_PROJECT_REF.supabase.co";
-window.AETHER_SUPABASE_ANON_KEY = "YOUR_PUBLIC_ANON_KEY";
-```
-Do not commit real keys if you prefer to keep project details private. The anon/publishable key is designed for browser use only when Row Level Security is correctly enabled. Service-role keys are secret and must remain server-side.
+저장소 Settings → Pages에서 Source가 **GitHub Actions**인지 확인해야 합니다. 워크플로는 main 브랜치 변경 시 자동 실행됩니다.
 
-## 4. Important status
-The database schema creates player profiles, inventory, roll history, a global leaderboard view, and a server-side weighted-roll RPC protected by authentication and row-level security. The current v0.1 browser game still uses local browser storage until the Supabase project is configured and the frontend integration is completed. No shared player database is live yet.
+## 보안
+- 브라우저에는 공개용 publishable key만 포함됩니다.
+- service_role 키는 절대 프론트엔드에 넣지 않습니다.
+- 플레이어 인벤토리와 기록은 RLS로 계정별 접근을 제한합니다.
+- 공개 랭킹은 플레이어 이름, 총 뽑기 수, 최고 희귀도만 표시합니다.
 
-## Custom domain and 24/7 availability
-A custom domain must be registered by its owner and then connected in GitHub Pages DNS settings. GitHub Pages serves the static website continuously, but it is not an always-on application server. Supabase hosts the database service. Free tiers can have usage limits or project pausing policies; they do not guarantee contractual 24/7 uptime.
+## 도메인과 가동 시간
+사용자 소유의 도메인을 별도로 등록해야 사용자 지정 주소를 연결할 수 있습니다. GitHub Pages는 정적 웹사이트 호스팅이며 계약상 24/7 가동 보장은 아닙니다. Supabase 무료 요금제에도 사용량 제한 및 일시 중지 조건이 있을 수 있습니다.
