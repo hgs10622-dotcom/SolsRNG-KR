@@ -137,6 +137,86 @@ main{width:100%;max-width:none;height:calc(100dvh - 54px);max-height:calc(100dvh
  .result h2{font-size:17px}
  .side>.stats{padding:5px}
 }
+
+/* WIDE SUMMON GATE — cinematic Sol's RNG-inspired horizontal portal */
+html,body{overflow:hidden!important}
+main{height:calc(100dvh - 54px);max-height:calc(100dvh - 54px);padding:7px 2.4vw 8px;gap:6px}
+.hero{flex:0 0 46px;height:46px}
+.hero small{font-size:9px;letter-spacing:5px}
+.hero h1{font-size:24px;margin:0}
+.hero p{font-size:10px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:7px}
+.stage{height:100%;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,34%);grid-template-rows:34px minmax(0,1fr) auto;align-items:center;justify-items:center;padding:10px 3vw;overflow:hidden;border-radius:18px;background:
+ radial-gradient(ellipse at 50% 53%,#173d69 0%,#102440 35%,#0a1426 72%),
+ linear-gradient(120deg,#08101f,#142d4b 50%,#08101f);border:1px solid #4b79aa;
+ box-shadow:inset 0 0 100px #2777c52a,0 12px 50px #0008;
+}
+.stage:before{content:"";position:absolute;z-index:-1;left:3%;right:3%;top:50%;height:54%;transform:translateY(-50%);border-radius:50%;
+ background:radial-gradient(ellipse at center,transparent 34%,#42baff12 48%,#7deaff38 51%,#398bff18 54%,transparent 69%),
+ repeating-linear-gradient(90deg,transparent 0 4%,#78d9ff13 4.1% 4.25%,transparent 4.4% 8%),
+ linear-gradient(90deg,transparent,#3baaff1b 18%,#8deaff30 50%,#3baaff1b 82%,transparent);
+ filter:blur(1px);box-shadow:0 0 60px #318fff2c,inset 0 0 55px #62d5ff20;pointer-events:none}
+.stage:after{content:"";position:absolute;z-index:-1;left:7%;right:7%;top:50%;height:66%;transform:translateY(-50%) perspective(500px) rotateX(58deg);border:2px solid #8beaff55;border-radius:50%;box-shadow:0 0 18px #4abaff88,0 0 55px #2c83ff55,inset 0 0 35px #70dfff44;pointer-events:none}
+.stagehead{grid-column:1/-1;grid-row:1;width:100%;align-self:start;display:flex;align-items:center;font-size:12px;color:#c6e6ff}
+#orb{grid-column:1;grid-row:2;align-self:center;justify-self:center;width:min(42vw,52vh,410px);height:min(42vw,52vh,410px);max-width:100%;max-height:100%;margin:0;filter:drop-shadow(0 0 28px color-mix(in srgb,var(--aura-color,#70baff) 50%,transparent))}
+#orb:before{inset:10%;filter:blur(70px);opacity:.45}
+#orb:after{inset:0;border-width:2px;box-shadow:0 0 45px color-mix(in srgb,var(--aura-color,#70baff) 40%,transparent),inset 0 0 45px #8beaff22}
+#orb svg{filter:drop-shadow(0 0 28px color-mix(in srgb,var(--aura-color,#70baff) 75%,transparent))}
+.result{grid-column:2;grid-row:2;align-self:center;justify-self:stretch;text-align:left;min-height:0;padding:22px 24px;border-left:1px solid #7bdcff45;background:linear-gradient(90deg,#08142666,transparent);text-shadow:0 2px 14px #000}
+.rarity{font-size:13px;letter-spacing:5px}
+.result h2{font-size:clamp(27px,3.4vw,48px);line-height:1.15;margin:12px 0}
+.result p{font-size:13px;line-height:1.7}
+.actions{grid-column:1/-1;grid-row:3;justify-self:center;align-self:end;padding:5px 0 2px}
+.primary,.secondary{padding:12px 24px;border-radius:10px}
+.primary{font-size:15px;letter-spacing:.5px}
+.side{height:104px;min-height:0;display:grid;grid-template-columns:1.15fr 1fr;grid-template-rows:1fr;gap:7px;overflow:hidden}
+.side>.stats{padding:9px 13px;min-height:0;overflow:hidden}
+.side>.stats:nth-child(3),.side>.stats:nth-child(4){display:none}
+.side>.stats:first-child .heading,.side>.stats:nth-child(2) .heading{font-size:11px;margin:0 0 5px}
+.side>.stats:first-child p{display:none}
+.side>.stats:first-child #authUsername,.side>.stats:first-child #authPassword{width:auto!important;max-width:190px;display:inline-block!important;margin:0 5px 0 0!important;padding:7px!important}
+.side>.stats:first-child .actions{display:inline-flex;padding:0;vertical-align:middle}
+.side>.stats:first-child .primary,.side>.stats:first-child .secondary{padding:7px 11px;font-size:11px}
+.statgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.stat{padding:6px 9px}
+.stat small{font-size:9px}
+.stat b{font-size:15px;margin-top:2px;white-space:nowrap}
+.tabs,.content,.footer{display:none!important}
+@media(max-width:780px){
+ .top{height:42px;min-height:42px;padding:0 12px}
+ main{height:calc(100dvh - 42px);max-height:calc(100dvh - 42px);padding:5px;gap:5px}
+ .hero{flex:0 0 38px;height:38px}
+ .hero small{font-size:7px;letter-spacing:3px}
+ .hero h1{font-size:19px}
+ .hero p{font-size:8px}
+ .layout{grid-template-rows:minmax(0,1fr) 84px;gap:5px}
+ .stage{grid-template-columns:minmax(0,1fr);grid-template-rows:25px minmax(0,1fr) auto; padding:7px 9px}
+ .stagehead{grid-column:1;grid-row:1;font-size:10px}
+ #orb{grid-column:1;grid-row:2;width:min(47vh,66vw,260px);height:min(47vh,66vw,260px)}
+ .result{grid-column:1;grid-row:2;align-self:end;justify-self:center;text-align:center;padding:7px 10px 2px;border:0;background:linear-gradient(0deg,#071426c9,transparent);width:100%}
+ .rarity{font-size:9px;letter-spacing:3px}
+ .result h2{font-size:21px;margin:4px}
+ .result p{font-size:9px}
+ .actions{grid-column:1;grid-row:3;gap:5px;padding:4px 0 1px}
+ .primary,.secondary{padding:8px 12px;font-size:11px}
+ .side{height:84px;grid-template-columns:1fr 1fr;gap:5px}
+ .side>.stats{padding:6px}
+ .side>.stats:first-child .heading{font-size:9px;margin-bottom:3px}
+ .side>.stats:first-child #authUsername,.side>.stats:first-child #authPassword{max-width:47%;width:47%!important;font-size:9px!important;padding:5px!important}
+ .side>.stats:first-child .primary,.side>.stats:first-child .secondary{padding:5px 7px;font-size:9px}
+ .side>.stats:nth-child(2) .heading{font-size:9px}
+ .statgrid{grid-template-columns:1fr 1fr;gap:3px}
+ .stat{padding:3px 5px}
+ .stat small{font-size:8px}
+ .stat b{font-size:11px}
+}
+@media(max-height:650px) and (min-width:781px){
+ .hero{flex-basis:34px;height:34px}
+ .hero h1{font-size:20px}
+ .stage{grid-template-rows:25px minmax(0,1fr) auto}
+ #orb{width:min(37vw,42vh,310px);height:min(37vw,42vh,310px)}
+ .side{height:88px}
+}
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script></head><body>
 <header class="top"><div class="brand">AETHER<span> RNG</span></div><div class="version">WEB AURA SIMULATOR · v0.2.0</div></header>
 <main><section class="hero"><small>THE WORLD OF CHANCE</small><h1>운명을 뽑아라</h1><p>수많은 오라 중 단 하나의 특별한 빛을 찾아보세요.</p></section>
