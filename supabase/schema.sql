@@ -65,8 +65,6 @@ declare
   v_item record;
   v_new_total bigint;
   v_name text;
-  v_name text;
-  v_name text;
 begin
   if v_user is null then
     raise exception 'Authentication required';
