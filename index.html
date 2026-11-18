@@ -68,6 +68,75 @@ button:disabled{opacity:.45;cursor:not-allowed}
  .actions{gap:7px}
  .primary,.secondary{padding:11px 13px}
 }
+
+/* STRICT NO-SCROLL APP SHELL: all gameplay controls stay inside the viewport. */
+html,body{width:100%;height:100%;min-height:0;margin:0;overflow:hidden!important;overscroll-behavior:none}
+body{height:100dvh;max-height:100dvh}
+.top{height:54px;min-height:54px}
+main{width:100%;max-width:none;height:calc(100dvh - 54px);max-height:calc(100dvh - 54px);min-height:0;margin:0;padding:10px 14px 12px;display:flex;flex-direction:column;gap:9px;overflow:hidden!important}
+.hero{flex:0 0 64px;height:64px;margin:0;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:0}
+.hero h1{font-size:clamp(21px,2.3vw,29px);margin:2px 0}
+.hero p{font-size:11px}
+.layout{flex:1 1 auto;min-height:0;height:auto;grid-template-columns:minmax(0,1.55fr) minmax(290px,.85fr);gap:10px;overflow:hidden}
+.stage{height:100%;min-height:0;padding:12px}
+.stagehead{flex:0 0 auto}
+.orb{width:clamp(112px,17vh,180px);height:clamp(112px,17vh,180px)}
+.result{min-height:0}
+.result h2{font-size:clamp(19px,2vw,25px)}
+.actions{flex:0 0 auto;gap:7px}
+.primary,.secondary{padding:10px 14px}
+.side{height:100%;min-height:0;overflow:hidden!important;gap:8px}
+.stats{padding:10px;min-height:0}
+.heading{margin-bottom:7px}
+.statgrid{gap:6px}
+.stat{padding:8px}
+.stat b{font-size:18px}
+.odds{gap:5px}
+.tabs,.content,.footer{display:none!important}
+*{scrollbar-width:none!important}
+*::-webkit-scrollbar{display:none!important}
+@media(max-width:780px){
+ .top{height:46px;min-height:46px;padding:0 12px}
+ .brand{font-size:17px}
+ .version{font-size:9px;padding:5px 8px}
+ main{height:calc(100dvh - 46px);max-height:calc(100dvh - 46px);padding:7px;gap:6px}
+ .hero{flex:0 0 48px;height:48px}
+ .hero small{font-size:8px;letter-spacing:2px}
+ .hero h1{font-size:21px;margin:1px}
+ .hero p{font-size:9px}
+ .layout{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:6px}
+ .stage{padding:9px;border-radius:13px}
+ .stagehead{font-size:11px}
+ .orb{width:min(30vh,39vw,150px);height:min(30vh,39vw,150px)}
+ .result{min-height:45px}
+ .result h2{font-size:19px;margin:2px}
+ .result p{font-size:10px}
+ .rarity{font-size:10px}
+ .actions{gap:5px}
+ .primary,.secondary{padding:9px 11px;font-size:12px}
+ .side{height:auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto;gap:6px}
+ .side>.stats{padding:7px;border-radius:10px}
+ .side>.stats:nth-child(n+3){display:none}
+ .heading{font-size:11px;margin-bottom:5px}
+ #authStatus{font-size:10px!important;margin-bottom:4px!important}
+ #authUsername,#authPassword{padding:6px 7px!important;font-size:10px;margin-bottom:4px!important}
+ .side .actions{gap:4px}
+ .side .primary,.side .secondary{padding:7px 8px;font-size:10px}
+ .side .stats p{display:none}
+ .stat{padding:5px}
+ .stat small{font-size:9px}
+ .stat b{font-size:14px;margin-top:2px}
+}
+@media(max-height:620px){
+ .top{height:42px;min-height:42px}
+ main{height:calc(100dvh - 42px);max-height:calc(100dvh - 42px);padding:5px;gap:4px}
+ .hero{flex-basis:40px;height:40px}
+ .hero h1{font-size:19px}
+ .orb{width:min(23vh,130px);height:min(23vh,130px)}
+ .stage{padding:7px}
+ .result h2{font-size:17px}
+ .side>.stats{padding:5px}
+}
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script></head><body>
 <header class="top"><div class="brand">AETHER<span> RNG</span></div><div class="version">WEB AURA SIMULATOR · v0.2.0</div></header>
 <main><section class="hero"><small>THE WORLD OF CHANCE</small><h1>운명을 뽑아라</h1><p>수많은 오라 중 단 하나의 특별한 빛을 찾아보세요.</p></section>
