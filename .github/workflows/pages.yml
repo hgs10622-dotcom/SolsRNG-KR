@@ -16,6 +16,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Validate inline JavaScript
+        run: |
+          python3 - <<'PY'
+          import re
+          source = open('index.html', encoding='utf-8').read()
+          scripts = re.findall(r'<script>(.*?)</script>', source, flags=re.S)
+          if not scripts:
+              raise SystemExit('No inline application script found')
+          open('/tmp/aether-inline.js', 'w', encoding='utf-8').write(scripts[-1])
+          PY
+          node --check /tmp/aether-inline.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
