@@ -24,3 +24,11 @@ GitHub Pages: https://hgs10622-dotcom.github.io/SolsRNG-KR/
 
 ## 안전
 모든 뽑기는 무료이며 현금 결제, 현금성 재화, 유료 확률 상품은 없습니다. Supabase service_role 키는 브라우저나 저장소에 넣지 않습니다.
+
+## 3D Aura Models
+
+Aura showcase models load on demand as GLB assets through Three.js GLTFLoader. The current model manifest maps all 18 aura IDs to individual CC0 assets from Grab3D's public library. The built-in Three.js aura geometry remains as a fallback if an external model cannot load.
+
+- Asset source and CC0 license: https://grab3d.com/developers/
+- Model files are loaded from the documented static download route: `https://grab3d.com/dl/{slug}/{file}`
+- Models are requested only when their aura is selected, rather than downloading the full collection at startup.
