@@ -257,7 +257,8 @@ main{height:calc(100dvh - 54px);max-height:calc(100dvh - 54px);padding:7px 2.4vw
 
 #orb{position:relative;overflow:visible}
 #orb canvas{z-index:3;pointer-events:none;filter:drop-shadow(0 0 26px color-mix(in srgb,var(--aura-color) 55%,transparent))}
-</style><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script></head><body>
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script></head><body>
 <header class="top"><div class="brand">AETHER<span> RNG</span></div><div class="version">WEB AURA SIMULATOR · v0.2.0</div></header>
 <main><section class="hero"><small>THE WORLD OF CHANCE</small><h1>운명을 뽑아라</h1><p>수많은 오라 중 단 하나의 특별한 빛을 찾아보세요.</p></section>
 <div class="layout"><section class="panel stage" id="summonStage"><div class="stagehead"><span>✦ 소환 게이트</span><span>행운 x1.00</span></div><div class="orb" id="orb" aria-label="획득 오라 시각화"></div><div class="result"><div class="rarity" id="rarity">READY TO ROLL</div><h2 id="auraName">아직 뽑지 않았어요</h2><p id="desc">버튼을 눌러 첫 번째 오라를 획득하세요.</p></div><div class="actions"><button class="primary" id="roll">✦ 오라 뽑기</button><button class="secondary" id="auto">자동 뽑기 시작</button><button class="secondary" id="equip" disabled>장착하기</button></div></section>
@@ -432,6 +433,59 @@ function buildAura3D(item){
    const geo=new T.TorusKnotGeometry(.65,.025,160,8,2,5);add(geo,bright).rotation.set(.5,.2,.4);
    for(let i=0;i<3;i++){const r=torus(1.45+i*.12,.018,bright,[i*.7,.4+i*.4,0]);}
    particles(600,2,.022,0xffd29c);
+ }
+
+ // Published CC0 GLB hero models. Loaded only for the selected aura; procedural art remains as a fallback.
+ const GLB_AURA_MODELS={
+  dust:"https://grab3d.com/dl/clouds/clouds.glb",
+  leaf:"https://grab3d.com/dl/autumn-tree/autumn-tree.glb",
+  bubble:"https://grab3d.com/dl/crystal-ball/crystal-ball.glb",
+  ember:"https://grab3d.com/dl/phoenix/phoenix.glb",
+  frost:"https://grab3d.com/dl/crystal-cluster/crystal-cluster.glb",
+  tide:"https://grab3d.com/dl/puddle/puddle.glb",
+  storm:"https://grab3d.com/dl/lightning-bolt/lightning-bolt.glb",
+  nebula:"https://grab3d.com/dl/nebula/nebula.glb",
+  phantom:"https://grab3d.com/dl/haunted-portrait/haunted-portrait.glb",
+  solar:"https://grab3d.com/dl/sun/sun.glb",
+  lunar:"https://grab3d.com/dl/earth-and-moon/earth-and-moon.glb",
+  singularity:"https://grab3d.com/dl/black-hole/black-hole.glb",
+  chronos:"https://grab3d.com/dl/grandfather-clock/grandfather-clock.glb",
+  aurora:"https://grab3d.com/dl/glowing-mushrooms/glowing-mushrooms.glb",
+  eclipse:"https://grab3d.com/dl/moon-base-dome/moon-base-dome.glb",
+  seraph:"https://grab3d.com/dl/costume-wings/costume-wings.glb",
+  infinity:"https://grab3d.com/dl/wormhole/wormhole.glb",
+  origin:"https://grab3d.com/dl/crystal-dragon/crystal-dragon.glb"
+ };
+ const externalModelUrl=GLB_AURA_MODELS[id];
+ if(externalModelUrl&&T.GLTFLoader){
+  const glbLoader=new T.GLTFLoader();
+  glbLoader.load(externalModelUrl,gltf=>{
+   if(!alive)return;
+   const model=gltf.scene;
+   // Remove the generated stand-in meshes but keep the aura's soft outer halo.
+   group.children.slice().forEach(child=>{
+    if(child===glow)return;
+    group.remove(child);
+    child.traverse?.(node=>{if(node.geometry)node.geometry.dispose();if(node.material){const mats=Array.isArray(node.material)?node.material:[node.material];mats.forEach(m=>{if(m.map)m.map.dispose();if(m.normalMap)m.normalMap.dispose();m.dispose()})}});
+   });
+   // Drop presentation stands where the source model names them explicitly.
+   model.traverse(node=>{
+    if(!node.isMesh)return;
+    const n=(node.name||"").toLowerCase();
+    if(/display[_ -]?stand|pedestal|plinth|base[_ -]?stand/.test(n)){node.visible=false;return}
+    node.frustumCulled=true;
+    if(node.material){const mats=Array.isArray(node.material)?node.material:[node.material];mats.forEach(m=>{if(m.metalness===undefined)m.metalness=.15;if(m.roughness===undefined)m.roughness=.28})}
+   });
+   const bounds=new T.Box3().setFromObject(model);
+   const dims=bounds.getSize(new T.Vector3());
+   const center=bounds.getCenter(new T.Vector3());
+   const largest=Math.max(dims.x,dims.y,dims.z)||1;
+   model.position.sub(center);
+   model.scale.setScalar(2.55/largest);
+   model.rotation.x=-.08;
+   model.userData.isPublishedGLB=true;
+   group.add(model);
+  },undefined,error=>console.warn("Aura GLB load failed; using built-in model:",id,error));
  }
  let alive=true,frame=0,resizeObserver=null;
  const resize=()=>{const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()};
