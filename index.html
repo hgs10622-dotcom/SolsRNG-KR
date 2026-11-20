@@ -577,7 +577,8 @@ function buildAura3D(item){
     node.frustumCulled=true;
     const mats=Array.isArray(node.material)?node.material:[node.material];
     mats.forEach(m=>{
-     if(m.color&&item.variant){m.color.set(item.color)}\n     if(m.emissive&&item.variant){m.emissive.set(item.color)}\n     if(m.roughness===undefined)m.roughness=.24;
+     if(m.color&&item.variant){m.color.set(item.color)}
+     if(m.emissive&&item.variant){m.emissive.set(item.color)}\n     if(m.roughness===undefined)m.roughness=.24;
      if(m.metalness===undefined)m.metalness=.55;
      if(m.emissiveIntensity===undefined)m.emissiveIntensity=.35;
     });
