@@ -298,7 +298,6 @@ const TOTAL_WEIGHT=RARITY_MASS.reduce((a,b)=>a+b,0);
 A.forEach(a=>{a.weight=RARITY_MASS[a.tier]/totalCountsByTier[a.tier];a.modelId=a.modelId||RARITY_MODELS[a.tier];});
 
 const tiers=RARITY_NAMES.map((name,i)=>{const w=A.filter(a=>a.tier===i).reduce((s,a)=>s+a.weight,0),p=w/TOTAL_WEIGHT*100;return [name,p.toLocaleString("ko-KR",{maximumSignificantDigits:4})+"%",RARITY_COLORS[i],p,w]});
-const tiers=[["일반","#c3cfdf"],["고급","#7de3a2"],["희귀","#70baff"],["영웅","#c28aff"],["전설","#ffd16e"],["신화","#ff8cba"],["천상","#8cecff"],["초월","#fff0a6"]].map(t=>{let total=A.reduce((s,a)=>s+a.weight,0),w=A.filter(a=>a.rarity===t[0]).reduce((s,a)=>s+a.weight,0),p=w/total*100;return [t[0],p.toLocaleString("ko-KR",{maximumSignificantDigits:4})+"%",t[1],p]});
 const $=id=>document.getElementById(id),S={rolls:0,bag:{},equipped:null,best:-1,last:null,history:[]};
 let busy=false,autoOn=false,autoTimer=null,tab="inventory",sb=null,currentUser=null,onlineReady=false;
 function localSave(){if(!currentUser)localStorage.setItem("aether-save",JSON.stringify(S))}
