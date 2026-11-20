@@ -190,6 +190,83 @@ def build(key,rgb):
         # angular crown and sweeping tail
         add(tube([(-.25,.1,0),(-.85,.55,.15),(-1.15,.95,.1),(-.55,1.1,.2),(0,.85,.1),(.65,1.15,0),(1.05,.85,-.1)],.065,(1,.75,.3)))
         add(torus(1.55,.022,(1,.72,.35),(.4,.8,.2)))
+
+    # High-tier signature architecture: a complete astral gate, not just a glow.
+    # Separate machined rings, radial braces, crown spires and engraved markers
+    # give the silhouette depth when viewed from the front or at an angle.
+    if key in {"nebula","phantom","solar","lunar","singularity","chronos","aurora","eclipse","seraph","infinity","origin"}:
+        accent = tuple(min(1.0, c*0.72+0.22) for c in rgb)
+        pale = tuple(min(1.0, c*0.38+0.58) for c in rgb)
+        dark = tuple(c*0.20 for c in rgb)
+        # Three independently tilted precision rings.
+        add(torus(1.48,.045,rgb,(0.12,.08,1),144,14))
+        add(torus(1.68,.022,pale,(.62,.18,.76),144,10))
+        add(torus(1.88,.032,accent,(-.38,.72,.58),160,12))
+        # Inner segmented ring and small inset nodes.
+        for i in range(32):
+            a=2*math.pi*i/32
+            x,y=1.55*math.cos(a),1.55*math.sin(a)
+            add(cyl((x*.94,y*.94,.02),(x*1.035,y*1.035,.02),.026,pale,8))
+            if i%2==0:
+                add(mesh_sphere(.043,accent,(1.72*math.cos(a),1.72*math.sin(a),.035),sub=2,metallic=.9,rough=.12,glow=.9))
+        # Eight substantial structural pylons around the gate.
+        for i in range(8):
+            a=2*math.pi*i/8 + math.pi/8
+            ca,sa=math.cos(a),math.sin(a)
+            base=(1.26*ca,1.26*sa,-.16)
+            tip=(1.93*ca,1.93*sa,.12*math.sin(a*2))
+            add(cyl(base,tip,.075,accent,12))
+            add(mesh_sphere(.105,pale,tip,sub=2,metallic=.85,rough=.14,glow=.8))
+            # Faceted crown crystal on alternating pylons.
+            if i%2==0:
+                shard=crystal(.48,rgb,(1.98*ca,1.98*sa,.18),.115)
+                shard.apply_transform(trimesh.transformations.rotation_matrix(a,[0,0,1]))
+                add(shard)
+        # Floating rune plates, each with a bright central inlay.
+        for i in range(16):
+            a=2*math.pi*i/16
+            x,y=1.78*math.cos(a),1.78*math.sin(a)
+            plate=trimesh.creation.box(extents=(.18,.075,.045))
+            plate.apply_transform(trimesh.transformations.rotation_matrix(a,[0,0,1]))
+            plate.apply_translation((x,y,.10))
+            plate.visual.material=mat(dark,.92,.2,.18)
+            add(plate)
+            add(cyl((x,y,.13),(x+.035*math.cos(a),y+.035*math.sin(a),.13),.012,pale,6))
+        # Four long energy vanes create a readable star-shaped silhouette.
+        for i in range(4):
+            a=math.pi/4+i*math.pi/2
+            ca,sa=math.cos(a),math.sin(a)
+            add(tube([
+                (.32*ca,.32*sa,.12),
+                (.82*ca,.82*sa,.22),
+                (1.38*ca,1.38*sa,.08),
+                (1.92*ca,1.92*sa,-.08)],.027,pale))
+            add(mesh_sphere(.075,rgb,(1.40*ca,1.40*sa,.08),sub=2,metallic=.8,rough=.12,glow=1))
+        # A small, layered crown above the core.
+        for side in (-1,1):
+            x=side*.30
+            add(tube([[x,-.25,.2],[x*1.55,.22,.22],[x*1.75,.72,.16],[x*1.15,1.12,.08]],.038,accent))
+            add(crystal(.42,pale,(x*1.75,.78,.16),.095))
+        # Central floating halo and a fine orbiting bead constellation.
+        add(torus(.78,.018,pale,(.18,.24,1),128,8))
+        for i in range(12):
+            a=2*math.pi*i/12
+            add(mesh_sphere(.032,pale,(.92*math.cos(a),.92*math.sin(a),.30*math.sin(2*a)),sub=2,metallic=.75,rough=.1,glow=1))
+        # Tier-specific signature additions.
+        if key in {"singularity","eclipse"}:
+            add(torus(1.12,.075,(1.0,.24,.62),(.22,.62,.75),160,18))
+            for i in range(6):
+                a=i*math.pi/3
+                add(tube([[.42*math.cos(a),.42*math.sin(a),.25],[.9*math.cos(a+.3),.9*math.sin(a+.3),.08],[1.5*math.cos(a),1.5*math.sin(a),-.12]],.035,pale))
+        elif key in {"chronos","infinity"}:
+            for i in range(12):
+                a=i*math.pi/6
+                add(cyl((1.15*math.cos(a),1.15*math.sin(a),.22),(1.38*math.cos(a),1.38*math.sin(a),.22),.035,pale,10))
+        elif key in {"seraph","origin"}:
+            for side in (-1,1):
+                for row in range(3):
+                    y=.18+row*.22
+                    add(tube([[side*.28,y,.12],[side*(.72+row*.12),y+.32,.06],[side*(1.18+row*.12),y+.58,-.02]],.045,pale))
     return parts
 
 for key,rgb in PALETTE.items():
