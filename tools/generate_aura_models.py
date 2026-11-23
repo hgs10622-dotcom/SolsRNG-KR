@@ -282,6 +282,58 @@ def css_rgb(value):
         return colorsys.hls_to_rgb(h,l,s)
     return (0.55,0.72,1.0)
 
+def archetype_parts(archetype, rgb, seed, tier):
+    """Compact, polished archetype core; per-ID geometry is added separately."""
+    rng=np.random.default_rng(seed ^ 0x5A17)
+    parts=[]
+    accent=tuple(min(1,c*.62+.30) for c in rgb)
+    pale=tuple(min(1,c*.22+.72) for c in rgb)
+    if archetype=="dust":
+        for i in range(7):
+            a=i*2.399; r=.24+(i%3)*.19
+            parts.append(mesh_sphere(.19+(i%2)*.06,rgb,(math.cos(a)*r,math.sin(a)*r,.16*math.sin(i)),sub=2,metallic=.25,rough=.55,glow=.35))
+    elif archetype=="ember":
+        parts.append(mesh_sphere(.52,rgb,(0,0,0),sub=3,metallic=.35,rough=.2,glow=.9))
+        for i in range(7):
+            a=i*math.tau/7
+            parts.append(crystal(.85+(i%3)*.2,accent,(.62*math.cos(a),.62*math.sin(a),.04),.14))
+    elif archetype=="tide":
+        parts.append(mesh_sphere(.56,rgb,(0,0,0),(1.1,.72,.9),sub=3,metallic=.7,rough=.12,glow=.7))
+        for i in range(3):
+            parts.append(torus(.78+i*.22,.035,accent,(.25+i*.45,.4-i*.22,.2),72,10))
+    elif archetype=="nebula":
+        parts.append(mesh_sphere(.36,tuple(c*.4 for c in rgb),(0,0,0),sub=3,metallic=.3,rough=.25,glow=.9))
+        for arm in range(3):
+            pts=[]
+            for j in range(65):
+                q=j/64; a=q*math.tau*2+arm*math.tau/3; rad=.15+1.15*q
+                pts.append((math.cos(a)*rad,math.sin(a)*rad,.14*math.sin(q*15+arm)))
+            parts.append(tube(pts,.027,accent if arm%2 else pale))
+    elif archetype=="solar":
+        parts.append(mesh_sphere(.62,rgb,(0,0,0),sub=3,metallic=.3,rough=.28,glow=1))
+        for i in range(12):
+            a=i*math.tau/12
+            parts.append(crystal(.5+(i%3)*.16,accent,(1.02*math.cos(a),1.02*math.sin(a),0),.085))
+    elif archetype=="singularity":
+        parts.append(mesh_sphere(.5,tuple(c*.13 for c in rgb),(0,0,0),sub=3,metallic=1,rough=.035,glow=.03))
+        for i in range(4):
+            parts.append(torus(.72+i*.16,.035,accent if i%2 else pale,(i*.38,.35+i*.19,.2),72,10))
+    elif archetype=="aurora":
+        for band in range(5):
+            pts=[]
+            for j in range(48):
+                q=j/47; x=-1.25+2.5*q
+                y=.5-band*.2+math.sin(q*8+band*.7)*.18
+                z=.18*math.cos(q*6+band)
+                pts.append((x,y,z))
+            parts.append(tube(pts,.026+band*.002,accent if band%2 else pale))
+    else:
+        parts.append(mesh_sphere(.42,rgb,(0,0,0),sub=3,metallic=.8,rough=.16,glow=.9))
+        for i in range(8):
+            a=i*math.tau/8
+            parts.append(crystal(1.0+(i%3)*.2,accent,(.58*math.cos(a),.58*math.sin(a),.08),.15))
+    return parts
+
 def unique_parts(aura, seed):
     """Deterministic per-aura sculptural additions; each ID gets its own silhouette."""
     rng=np.random.default_rng(seed)
@@ -381,7 +433,7 @@ for index,aura in enumerate(catalog):
     seed=int.from_bytes(aura_id.encode("utf-8"),"little") % (2**32-1)
     rgb=css_rgb(aura.get("color","#8bdcff"))
     scene=trimesh.Scene()
-    source_parts=build(archetype,PALETTE[archetype])
+    source_parts=archetype_parts(archetype,rgb,seed,int(aura.get("tier",0)))
     additions=unique_parts(aura,seed)
     for i,m in enumerate(source_parts+additions):
         # Preserve the original geometry/material architecture, but tint each
