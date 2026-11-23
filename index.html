@@ -271,13 +271,54 @@ main{height:calc(100dvh - 54px);max-height:calc(100dvh - 54px);padding:7px 2.4vw
 .aura-detail-stat small{display:block;color:#91a8c6;font-size:11px;margin-bottom:6px}
 .aura-detail-stat b{font-size:16px}
 
+
+/* v0.3.0: restore collection navigation and make catalog usable */
+main{
+ height:auto!important;max-height:none!important;min-height:calc(100dvh - 54px)!important;
+ overflow-y:auto!important;overflow-x:hidden!important;
+}
+.layout{
+ flex:0 0 clamp(390px,52vh,540px)!important;height:auto!important;min-height:390px!important;
+ grid-template-columns:minmax(0,1.55fr) minmax(290px,.85fr)!important;
+ grid-template-rows:minmax(0,1fr)!important;overflow:visible!important;
+}
+.stage{height:100%!important;min-height:390px!important}
+.side{
+ height:100%!important;min-height:0!important;display:flex!important;flex-direction:column!important;
+ overflow:auto!important;gap:8px!important;
+}
+.side>.stats:nth-child(n+3){display:block!important}
+.tabs{
+ display:flex!important;position:static!important;flex:0 0 auto!important;
+ margin:4px 0 0!important;overflow-x:auto!important;
+}
+.content{
+ display:block!important;flex:1 0 auto!important;min-height:320px!important;
+ overflow:visible!important;margin-bottom:8px;
+}
+.footer{display:block!important;flex:0 0 auto!important}
+@media(max-width:780px){
+ main{min-height:calc(100dvh - 42px)!important;padding:7px!important;overflow-y:auto!important}
+ .layout{
+  flex:0 0 auto!important;height:auto!important;min-height:0!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:minmax(420px,62vh) auto!important;gap:7px!important;
+ }
+ .stage{height:auto!important;min-height:420px!important}
+ .side{height:auto!important;display:grid!important;grid-template-columns:1fr 1fr!important;grid-template-rows:auto auto!important;overflow:visible!important}
+ .side>.stats:nth-child(n+3){display:block!important}
+ .tabs{overflow-x:auto!important;white-space:nowrap}
+ .tab{min-width:105px;flex:0 0 auto}
+ .content{min-height:300px!important}
+}
+
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script></head><body>
-<header class="top"><div class="brand">AETHER<span> RNG</span></div><div class="version">WEB AURA SIMULATOR · v0.2.0</div></header>
+<header class="top"><div class="brand">AETHER<span> RNG</span></div><div class="version">WEB AURA SIMULATOR · v0.3.0</div></header>
 <main><section class="hero"><small>THE WORLD OF CHANCE</small><h1>운명을 뽑아라</h1><p>수많은 오라 중 단 하나의 특별한 빛을 찾아보세요.</p></section>
 <div class="layout"><section class="panel stage" id="summonStage"><div class="stagehead"><span>✦ 소환 게이트</span><span>행운 x1.00</span></div><div class="orb" id="orb" aria-label="획득 오라 시각화"></div><div class="result"><div class="rarity" id="rarity">READY TO ROLL</div><h2 id="auraName">아직 뽑지 않았어요</h2><p id="desc">버튼을 눌러 첫 번째 오라를 획득하세요.</p></div><div class="actions"><button class="primary" id="roll">✦ 오라 뽑기</button><button class="secondary" id="auto">자동 뽑기 시작</button><button class="secondary" id="equip" disabled>장착하기</button></div></section>
 <aside class="side"><section class="panel stats"><div class="heading">온라인 계정</div><div id="authStatus" style="font-size:12px;color:#91a0b8;margin-bottom:10px">서버 연결 확인 중...</div><input class="search" id="authUsername" type="text" placeholder="아이디 (3~20자, 영문·숫자·_)" maxlength="20" autocomplete="username" autocapitalize="none" spellcheck="false" style="width:100%;margin-bottom:8px"><input class="search" id="authPassword" type="password" placeholder="비밀번호 (8자 이상)" minlength="8" maxlength="128" autocomplete="current-password" style="width:100%;margin-bottom:8px"><div class="actions"><button class="primary" id="signUp">회원가입</button><button class="secondary" id="signIn">로그인</button><button class="secondary" id="signOut" style="display:none">로그아웃</button></div><p style="font-size:11px;color:#8192ad;line-height:1.6">이메일 입력 없이 아이디와 비밀번호만으로 가입·로그인합니다. 오라와 기록은 계정에 저장됩니다.</p></section><section class="panel stats"><div class="heading">내 기록</div><div class="statgrid"><div class="stat"><small>총 뽑기 횟수</small><b id="rolls">0</b></div><div class="stat"><small>발견한 오라</small><b id="found">0 / 1,000</b></div><div class="stat"><small>최고 희귀도</small><b id="best">-</b></div><div class="stat"><small>현재 장착</small><b id="equipped">없음</b></div></div></section><section class="panel stats"><div class="heading">희귀도 기본 확률</div><div class="odds" id="odds"></div></section><section class="panel stats"><div class="heading">설정</div><label class="toggle"><input type="checkbox" id="skip"> 연출 간소화</label> <label class="toggle"><input type="checkbox" id="sound"> 효과음</label><p style="font-size:11px;color:#8293ad;line-height:1.6">진행 상황은 현재 브라우저에 자동 저장됩니다.</p></section></aside></div>
-<div class="tabs"><button class="tab active" data-tab="inventory">인벤토리</button><button class="tab" data-tab="index">오라 도감</button><button class="tab" data-tab="odds">확률표</button><button class="tab" data-tab="leaderboard">랭킹</button><button class="tab" data-tab="info">정보 / 저장</button></div><section class="panel content" id="content"></section><div class="footer">AETHER RNG v0.1.0 · 오리지널 오라 수집 시뮬레이터 · 현금 결제 없음</div></main><div class="toast" id="toast"></div><div class="aura-detail" id="auraDetail" hidden onclick="if(event.target===this)closeAuraDetail()"><section class="aura-detail-card"><button class="aura-detail-close" onclick="closeAuraDetail()" aria-label="닫기">×</button><div id="auraDetailBody"></div></section></div>
+<div class="tabs"><button class="tab active" data-tab="inventory">인벤토리</button><button class="tab" data-tab="index">오라 도감</button><button class="tab" data-tab="odds">확률표</button><button class="tab" data-tab="leaderboard">랭킹</button><button class="tab" data-tab="info">정보 / 저장</button></div><section class="panel content" id="content"></section><div class="footer">AETHER RNG v0.3.0 · 오리지널 오라 수집 시뮬레이터 · 현금 결제 없음</div></main><div class="toast" id="toast"></div><div class="aura-detail" id="auraDetail" hidden onclick="if(event.target===this)closeAuraDetail()"><section class="aura-detail-card"><button class="aura-detail-close" onclick="closeAuraDetail()" aria-label="닫기">×</button><div id="auraDetailBody"></div></section></div>
 <script>
 "use strict";
 const A=[
@@ -664,7 +705,7 @@ function render(){
  else if(tab==="index"){h.innerHTML='<div class="collectionhead"><div><b>오라 도감 · '+A.length.toLocaleString("ko-KR")+'종</b><div style="font-size:11px;color:#91a0b8">발견 여부와 관계없이 전체 오라를 확인할 수 있습니다.</div></div><input class="search" id="search" placeholder="이름·등급 검색"></div><div class="filter-row"><select id="rarityFilter"><option value="all">전체 등급</option>'+RARITY_NAMES.map(n=>'<option>'+n+'</option>').join("")+'</select></div><div class="grid" id="catalogCards"></div><div class="pager"><button class="secondary" id="catalogPrev">이전</button><span id="catalogPageInfo"></span><button class="secondary" id="catalogNext">다음</button></div>';let page=0,query="",rarity="all";const update=()=>renderCatalogPage(query,rarity,page);$("search").oninput=e=>{query=e.target.value;page=0;update()};$("rarityFilter").onchange=e=>{rarity=e.target.value;page=0;update()};$("catalogPrev").onclick=()=>{page=Math.max(0,page-1);update()};$("catalogNext").onclick=()=>{page++;update()};update()}
  else if(tab==="odds"){h.innerHTML='<div class="collectionhead"><div><b>전체 확률표 · '+A.length.toLocaleString("ko-KR")+'종</b><div style="font-size:11px;color:#91a0b8">모든 오라의 1회 뽑기 확률입니다. 등급별 확률은 합산 기준입니다.</div></div><input class="search" id="oddsSearch" placeholder="오라 검색"></div><div class="odds-summary">'+tiers.map(t=>'<div class="odds-summary-item"><b style="color:'+t[2]+'">'+t[0]+'</b><strong>'+t[1]+'</strong></div>').join("")+'</div><div class="odds-row odds-head"><b>오라</b><b>등급</b><b>확률</b><b>평균 1회</b></div><div id="oddsRows"></div><div class="pager"><button class="secondary" id="oddsPrev">이전</button><span id="oddsPageInfo"></span><button class="secondary" id="oddsNext">다음</button></div>';let page=0,query="";const update=()=>renderOddsPage(query,"all",page);$("oddsSearch").oninput=e=>{query=e.target.value;page=0;update()};$("oddsPrev").onclick=()=>{page=Math.max(0,page-1);update()};$("oddsNext").onclick=()=>{page++;update()};update()}
  else if(tab==="leaderboard"){h.innerHTML='<div class="collectionhead"><b>🌐 전체 플레이어 랭킹</b><button class="secondary" id="refreshRank">새로고침</button></div><div id="rankRows" style="color:#91a0b8;font-size:13px">랭킹 불러오는 중...</div>';loadLeaderboard()}
- else{h.innerHTML='<div class="heading">AETHER RNG v0.2.0 · 온라인 수집 시뮬레이터</div><p style="font-size:13px;color:#b6c4d9;line-height:1.8">계정을 만들고 로그인하면 오라, 뽑기 횟수, 최고 희귀도가 서버에 저장됩니다. 모든 뽑기는 무료이며 현금성 재화를 사용하지 않습니다.</p><button class="secondary" id="export">저장 데이터 내보내기</button> <button class="secondary" id="reset">이 브라우저 기록 초기화</button><p style="font-size:11px;color:#8192ad">로그인 상태: '+(currentUser?"클라우드 저장":"로컬 저장")+'</p><b>최근 뽑기 기록</b><p>'+S.history.slice(0,12).map(id=>{let a=A.find(x=>x.id===id);return a?'<span class="pill" style="display:inline-block;margin:4px;color:'+a.color+'">'+a.name+'</span>':""}).join("")+'</p>';$("export").onclick=()=>{let u=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="aether-rng-save.json";a.click();URL.revokeObjectURL(u)};$("reset").onclick=()=>{if(confirm("이 브라우저에 저장된 오프라인 기록을 초기화할까요?")){localStorage.removeItem("aether-save");if(!currentUser)location.reload();else toast("온라인 데이터는 유지됩니다.")}}}
+ else{h.innerHTML='<div class="heading">AETHER RNG v0.3.0 · 온라인 수집 시뮬레이터</div><p style="font-size:13px;color:#b6c4d9;line-height:1.8">계정을 만들고 로그인하면 오라, 뽑기 횟수, 최고 희귀도가 서버에 저장됩니다. 모든 뽑기는 무료이며 현금성 재화를 사용하지 않습니다.</p><button class="secondary" id="export">저장 데이터 내보내기</button> <button class="secondary" id="reset">이 브라우저 기록 초기화</button><p style="font-size:11px;color:#8192ad">로그인 상태: '+(currentUser?"클라우드 저장":"로컬 저장")+'</p><b>최근 뽑기 기록</b><p>'+S.history.slice(0,12).map(id=>{let a=A.find(x=>x.id===id);return a?'<span class="pill" style="display:inline-block;margin:4px;color:'+a.color+'">'+a.name+'</span>':""}).join("")+'</p>';$("export").onclick=()=>{let u=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:"application/json"})),a=document.createElement("a");a.href=u;a.download="aether-rng-save.json";a.click();URL.revokeObjectURL(u)};$("reset").onclick=()=>{if(confirm("이 브라우저에 저장된 오프라인 기록을 초기화할까요?")){localStorage.removeItem("aether-save");if(!currentUser)location.reload();else toast("온라인 데이터는 유지됩니다.")}}}
 }
 async function loadLeaderboard(){let target=$("rankRows");if(!target)return;if(!sb){target.textContent="온라인 서버 설정이 없습니다.";return}let {data,error}=await sb.from("global_leaderboard").select("display_name,total_rolls,best_tier").order("best_tier",{ascending:false}).order("total_rolls",{ascending:false}).limit(100);if(error){target.textContent="랭킹을 불러오지 못했습니다: "+error.message;return}target.innerHTML=data.length?'<div style="display:grid;gap:8px">'+data.map((p,i)=>'<div class="stat" style="display:flex;justify-content:space-between;gap:12px"><b>#'+(i+1)+' '+escapeHtml(p.display_name||"Player")+'</b><span>최고 '+(tiers[p.best_tier]?.[0]||"-")+' · '+Number(p.total_rolls).toLocaleString("ko-KR")+'회</span></div>').join("")+'</div>':'아직 등록된 플레이어가 없습니다.'}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
