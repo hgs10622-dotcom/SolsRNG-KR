@@ -31,6 +31,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Restore generated aura models cache
+        uses: actions/cache@v4
+        with:
+          path: assets/aura
+          key: aura-glb-v2-${{ hashFiles('tools/generate_aura_models.py', 'supabase/aura_catalog.json') }}
       - name: Generate GLB assets before deployment
         run: |
           python -m pip install --upgrade pip trimesh numpy
