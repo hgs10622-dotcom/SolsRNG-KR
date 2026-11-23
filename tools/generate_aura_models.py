@@ -270,6 +270,105 @@ def build(key,rgb):
     return parts
 
 
+
+def signature_parts(aura, seed):
+    """Give each aura one of ten readable, silhouette-defining sculptural motifs."""
+    rng=np.random.default_rng(seed ^ 0xA37E91)
+    rgb=css_rgb(aura.get("color","#8bdcff"))
+    accent=tuple(min(1,c*.58+.34) for c in rgb)
+    pale=tuple(min(1,c*.22+.70) for c in rgb)
+    dark=tuple(c*.24 for c in rgb)
+    family=seed%10
+    parts=[]
+    if family==0:  # blooming crown
+        for i in range(8):
+            a=math.tau*i/8
+            x,z=math.cos(a),math.sin(a)
+            petal=mesh_sphere(.46,accent,(x*.78,.18,z*.78),(.42,1.55,.22),3,.62,.2,.85)
+            petal.apply_transform(trimesh.transformations.rotation_matrix(a,[0,1,0]))
+            parts.append(petal)
+            parts.append(crystal(.62,pale,(x*1.18,.68,z*1.18),.13))
+    elif family==1:  # twin comet wings
+        for side in (-1,1):
+            for band in range(3):
+                pts=[]
+                for j in range(36):
+                    q=j/35
+                    pts.append((side*(.18+1.65*q),.45+band*.15+math.sin(q*math.pi*1.4+band*.5)*(.18+q*.25),-.2+band*.18+q*.24))
+                parts.append(tube(pts,.025+band*.009,accent if band%2 else pale))
+            parts.append(crystal(.9,pale,(side*1.55,.62,.12),.16))
+    elif family==2:  # gyroscopic engine
+        for axis in ((1,0,0),(0,1,0),(0,0,1)):
+            parts.append(torus(1.02,.045,accent,axis,112,12))
+        for i in range(6):
+            a=math.tau*i/6
+            p=(1.0*math.cos(a),1.0*math.sin(a),.32*math.sin(2*a))
+            parts.append(mesh_sphere(.11,pale,p,sub=2,metallic=.95,rough=.1,glow=1))
+    elif family==3:  # crystal spire cluster
+        for i in range(11):
+            a=math.tau*i/11
+            r=.35+float(rng.random())*.65
+            h=.65+float(rng.random())*1.35
+            p=(math.cos(a)*r,float(rng.uniform(-.2,.25)),math.sin(a)*r)
+            shard=crystal(h,accent if i%3 else pale,p,.11+float(rng.random())*.13)
+            shard.apply_transform(trimesh.transformations.rotation_matrix(a,[0,1,0]))
+            parts.append(shard)
+        parts.append(mesh_sphere(.3,dark,(0,0,0),sub=3,metallic=1,rough=.08,glow=.15))
+    elif family==4:  # flowing spiral stream
+        for strand in range(4):
+            pts=[]
+            phase=strand*math.tau/4
+            for j in range(100):
+                q=j/99
+                a=q*math.tau*2.4+phase
+                r=.3+q*1.15
+                pts.append((math.cos(a)*r,(q-.5)*2.4,math.sin(a)*r))
+            parts.append(tube(pts,.025+strand*.006,accent if strand%2 else pale))
+    elif family==5:  # radial starburst
+        for i in range(16):
+            a=math.tau*i/16
+            r=.82 if i%2 else 1.08
+            start=(math.cos(a)*.36,0,math.sin(a)*.36)
+            end=(math.cos(a)*r,.12*math.sin(3*a),math.sin(a)*r)
+            parts.append(cyl(start,end,.035 if i%2 else .055,accent if i%3 else pale,8))
+            if i%2==0: parts.append(mesh_sphere(.085,pale,end,sub=2,metallic=.9,rough=.12,glow=1))
+    elif family==6:  # faceted containment cage
+        verts=[]
+        for y in (-.95,.95):
+            for i in range(6):
+                a=math.tau*i/6
+                verts.append((math.cos(a),y,math.sin(a)))
+        for i in range(6):
+            a=math.tau*i/6
+            parts.append(cyl(verts[i],verts[(i+1)%6],.035,accent,8))
+            parts.append(cyl(verts[i+6],verts[((i+1)%6)+6],.035,pale,8))
+            parts.append(cyl(verts[i],verts[i+6],.025,accent,8))
+            if i%2==0: parts.append(crystal(.5,pale,verts[i],.09))
+    elif family==7:  # orbiting moonlets
+        for i in range(5):
+            a=math.tau*i/5
+            axis=(math.cos(a),.35*math.sin(a*2),math.sin(a))
+            parts.append(torus(.78+i*.12,.025,accent if i%2 else pale,axis,96,10))
+            p=(1.25*math.cos(a),.35*math.sin(a*2),1.25*math.sin(a))
+            parts.append(mesh_sphere(.16+(i%2)*.06,pale,p,sub=3,metallic=.8,rough=.12,glow=.8))
+    elif family==8:  # layered floating halo plates
+        for i in range(7):
+            a=math.tau*i/7
+            plate=trimesh.creation.box(extents=(.48,.09,.3))
+            plate.apply_transform(trimesh.transformations.rotation_matrix(a,[0,1,0]))
+            plate.apply_translation((1.0*math.cos(a),.28*math.sin(a*2),1.0*math.sin(a)))
+            plate.visual.material=mat(accent if i%2 else pale,.86,.18,.75)
+            parts.append(plate)
+        parts.append(torus(1.35,.04,pale,(.25,.8,.4),128,12))
+    else:  # split crown with a vertical energy column
+        parts.append(cyl((0,-1.25,0),(0,1.25,0),.065,pale,12))
+        for side in (-1,1):
+            for i in range(4):
+                x=side*(.35+i*.2)
+                parts.append(tube([[0,.25,0],[x,.55+i*.1,.08],[side*(1.05+i*.13),1.0+i*.12,0]],.045,accent))
+                parts.append(crystal(.48+i*.12,pale,(side*(.95+i*.14),1.02+i*.12,0),.10))
+    return parts
+
 def css_rgb(value):
     value=str(value).strip()
     if value.startswith("#"):
@@ -435,13 +534,15 @@ for index,aura in enumerate(catalog):
     scene=trimesh.Scene()
     source_parts=archetype_parts(archetype,rgb,seed,int(aura.get("tier",0)))
     additions=unique_parts(aura,seed)
-    for i,m in enumerate(source_parts+additions):
+    signatures=signature_parts(aura,seed)
+    for i,m in enumerate(source_parts+additions+signatures):
         # Preserve the original geometry/material architecture, but tint each
         # individual asset with its own palette and per-part metallic response.
         if hasattr(m,"visual"):
-            shade=0.82+((seed+i*37)%19)/100
-            part_rgb=tuple(min(1.0,c*shade) for c in rgb)
-            m.visual.material=mat(part_rgb,.48+((seed+i)%45)/100,.12+((seed+i*3)%35)/100,.55+((seed+i*7)%35)/100)
+            shade=0.78+((seed+i*37)%25)/100
+            base=rgb if i%5 in (0,1) else (accent if i%5 in (2,3) else pale)
+            part_rgb=tuple(min(1.0,c*shade) for c in base)
+            m.visual.material=mat(part_rgb,.58+((seed+i)%38)/100,.10+((seed+i*3)%42)/100,.62+((seed+i*7)%35)/100)
         scene.add_geometry(m,geom_name=f"{aura_id}_mesh_{i:03d}",node_name=f"{aura_id}_part_{i:03d}")
     bounds=scene.bounds
     center=(bounds[0]+bounds[1])/2
@@ -450,10 +551,7 @@ for index,aura in enumerate(catalog):
     transform=np.eye(4); transform[:3,:3]*=scale; transform[:3,3]=-center*scale
     scene.apply_transform(transform)
     out=OUT/f"{aura_id}.glb"
-    if out.exists() and out.stat().st_size>1024:
-        if index%100==0 or index==len(catalog)-1:
-            print(f"cached {index+1}/{len(catalog)}: {aura_id}")
-        continue
+    # Always rebuild: cached GLBs may contain the previous low-detail geometry.
     scene.export(out)
     if index%25==0 or index==len(catalog)-1:
         print(f"generated {index+1}/{len(catalog)}: {aura_id} ({out.stat().st_size} bytes)")
