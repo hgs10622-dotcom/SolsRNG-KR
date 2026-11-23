@@ -554,7 +554,7 @@ function buildAura3D(item){
 
  // Each aura uses an original GLB generated into this repository.
  // Resolve relative to the GitHub Pages project path (works at /SolsRNG-KR/).
- const localModelUrl=new URL("./assets/aura/"+id+".glb",document.baseURI).href;
+ const localModelUrl=new URL("./assets/aura/"+item.id+".glb",document.baseURI).href;
  if(T.GLTFLoader){
   const glbLoader=new T.GLTFLoader();
   glbLoader.load(localModelUrl,gltf=>{
@@ -577,8 +577,6 @@ function buildAura3D(item){
     node.frustumCulled=true;
     const mats=Array.isArray(node.material)?node.material:[node.material];
     mats.forEach(m=>{
-     if(m.color&&item.variant){m.color.set(item.color)}
-     if(m.emissive&&item.variant){m.emissive.set(item.color)}
      if(m.roughness===undefined)m.roughness=.24;
      if(m.metalness===undefined)m.metalness=.55;
      if(m.emissiveIntensity===undefined)m.emissiveIntensity=.35;
