@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate original, locally hosted AETHER RNG aura GLB assets."""
 from pathlib import Path
-import math
+import math, json, colorsys
 import numpy as np
 import trimesh
 
@@ -269,16 +269,135 @@ def build(key,rgb):
                     add(tube([[side*.28,y,.12],[side*(.72+row*.12),y+.32,.06],[side*(1.18+row*.12),y+.58,-.02]],.045,pale))
     return parts
 
-for key,rgb in PALETTE.items():
+
+def css_rgb(value):
+    value=str(value).strip()
+    if value.startswith("#"):
+        h=value.lstrip("#")
+        return tuple(int(h[i:i+2],16)/255 for i in (0,2,4))
+    if value.startswith("hsl("):
+        import re
+        nums=[float(x) for x in re.findall(r"[-+]?\d*\.?\d+",value)]
+        h,s,l=nums[0]%360/360,nums[1]/100,nums[2]/100
+        return colorsys.hls_to_rgb(h,l,s)
+    return (0.55,0.72,1.0)
+
+def unique_parts(aura, seed):
+    """Deterministic per-aura sculptural additions; each ID gets its own silhouette."""
+    rng=np.random.default_rng(seed)
+    rgb=css_rgb(aura.get("color","#8bdcff"))
+    tier=int(aura.get("tier",0))
+    parts=[]
+    accent=tuple(min(1,c*.55+.38) for c in rgb)
+    pale=tuple(min(1,c*.25+.68) for c in rgb)
+    dark=tuple(c*.18 for c in rgb)
+
+    # A unique central form, selected from several genuinely different solids.
+    shape=seed%7
+    if shape==0:
+        core=trimesh.creation.icosphere(subdivisions=2+(seed%2),radius=.42+rng.random()*.22)
+        core.apply_scale([.72+rng.random()*.7,.75+rng.random()*.9,.72+rng.random()*.7])
+    elif shape==1:
+        core=trimesh.creation.cone(.48+rng.random()*.2,1.0+rng.random()*.8,sections=5+seed%5)
+        core.apply_transform(trimesh.transformations.rotation_matrix(math.pi/2,[1,0,0]))
+    elif shape==2:
+        core=trimesh.creation.cylinder(radius=.35+rng.random()*.22,height=1.0+rng.random()*.8,sections=7+seed%8)
+    elif shape==3:
+        core=trimesh.creation.icosphere(subdivisions=1,radius=.65)
+        core.apply_scale([1.3,.55,.72])
+    elif shape==4:
+        core=trimesh.creation.box(extents=[.7+rng.random()*.45,.7+rng.random()*.45,.7+rng.random()*.45])
+        core.apply_transform(trimesh.transformations.rotation_matrix(rng.random()*math.pi,[1,1,1]))
+    elif shape==5:
+        core=trimesh.creation.torus(major_radius=.48,minor_radius=.14)
+    else:
+        core=trimesh.creation.icosphere(subdivisions=2,radius=.5)
+        core.apply_scale([.52,1.45,.58])
+    core.visual.material=mat(rgb,.82,.16,.9)
+    parts.append(core)
+
+    # Unequal orbital architecture: deliberately asymmetric and seed-specific.
+    ring_count=1+seed%4+tier//3
+    for i in range(ring_count):
+        radius=.72+float(rng.random())*1.0
+        axis=rng.normal(size=3)
+        parts.append(torus(radius,.012+float(rng.random())*.026,
+                           accent if i%2==0 else pale,axis,
+                           segments=64+int(rng.integers(0,64)),sides=8+int(rng.integers(0,5))))
+    # Different numbers, angles, and lengths of sculpted crystal fins.
+    spike_count=3+seed%8+tier
+    for i in range(spike_count):
+        angle=2*math.pi*i/spike_count+float(rng.uniform(-.22,.22))
+        radius=.72+float(rng.random())*.5
+        height=.48+float(rng.random())*(.55+tier*.16)
+        pos=(math.cos(angle)*radius,float(rng.uniform(-.35,.45)),math.sin(angle)*radius)
+        shard=crystal(height,accent if i%3 else pale,pos,.075+float(rng.random())*.12)
+        shard.apply_transform(trimesh.transformations.rotation_matrix(angle,[0,1,0]))
+        parts.append(shard)
+    # One to three individually wound energy filaments.
+    for strand in range(1+seed%3):
+        turns=1.2+float(rng.random())*3.8
+        pts=[]
+        phase=float(rng.uniform(0,math.pi*2))
+        for j in range(100):
+            q=j/99
+            ang=q*turns*math.pi*2+phase
+            rad=.42+q*(.72+float(rng.random())*.05)
+            pts.append((math.cos(ang)*rad,
+                        (q-.5)*(.9+tier*.08),
+                        math.sin(ang)*rad))
+        parts.append(tube(pts,.012+float(rng.random())*.018,accent))
+    # Signature floating satellites, placed on non-coplanar trajectories.
+    for i in range(5+seed%12+tier*2):
+        ang=float(rng.uniform(0,math.pi*2))
+        rad=float(rng.uniform(1.15,2.15))
+        pos=(math.cos(ang)*rad,float(rng.uniform(-1.45,1.45)),math.sin(ang)*rad)
+        r=float(rng.uniform(.035,.12))
+        node=mesh_sphere(r,pale,pos,sub=1+int(rng.integers(0,2)),metallic=.9,rough=.12,glow=1)
+        parts.append(node)
+    # A tier-specific crown / wing silhouette, not just more particles.
+    if tier>=3:
+        wing_count=2+(seed%3)
+        for side in (-1,1):
+            for w in range(wing_count):
+                x=side*(.38+w*.17)
+                y=.25+w*.18
+                pts=[(x,y,0),(x+side*.35,y+.34,.08),(x+side*(.62+w*.12),y+.72,.02),(x+side*.34,y+1.0,-.08)]
+                parts.append(tube(pts,.035+ tier*.003, pale if w%2 else accent))
+    return parts
+
+catalog_path=Path("supabase/aura_catalog.json")
+if not catalog_path.exists():
+    raise SystemExit("supabase/aura_catalog.json is required to build unique aura assets")
+catalog=json.loads(catalog_path.read_text(encoding="utf-8"))
+if len(catalog)!=1000 or len({a["id"] for a in catalog})!=1000:
+    raise SystemExit("Aura catalog must contain exactly 1,000 unique IDs")
+
+for index,aura in enumerate(catalog):
+    aura_id=aura["id"]
+    archetype=aura.get("model_id","origin")
+    if archetype not in PALETTE:
+        raise SystemExit(f"Unknown base model {archetype} for {aura_id}")
+    seed=int.from_bytes(aura_id.encode("utf-8"),"little") % (2**32-1)
+    rgb=css_rgb(aura.get("color","#8bdcff"))
     scene=trimesh.Scene()
-    for i,m in enumerate(build(key,rgb)):
-        scene.add_geometry(m,geom_name=f"{key}_mesh_{i:03d}",node_name=f"{key}_part_{i:03d}")
-    # Normalize all source geometry around origin with consistent framing.
+    source_parts=build(archetype,PALETTE[archetype])
+    additions=unique_parts(aura,seed)
+    for i,m in enumerate(source_parts+additions):
+        # Preserve the original geometry/material architecture, but tint each
+        # individual asset with its own palette and per-part metallic response.
+        if hasattr(m,"visual"):
+            shade=0.82+((seed+i*37)%19)/100
+            part_rgb=tuple(min(1.0,c*shade) for c in rgb)
+            m.visual.material=mat(part_rgb,.48+((seed+i)%45)/100,.12+((seed+i*3)%35)/100,.55+((seed+i*7)%35)/100)
+        scene.add_geometry(m,geom_name=f"{aura_id}_mesh_{i:03d}",node_name=f"{aura_id}_part_{i:03d}")
     bounds=scene.bounds
     center=(bounds[0]+bounds[1])/2
     extent=max(bounds[1]-bounds[0])
     scale=2.65/(extent or 1)
     transform=np.eye(4); transform[:3,:3]*=scale; transform[:3,3]=-center*scale
     scene.apply_transform(transform)
-    scene.export(OUT/f"{key}.glb")
-    print("generated",key,(OUT/f"{key}.glb").stat().st_size)
+    out=OUT/f"{aura_id}.glb"
+    scene.export(out)
+    if index%50==0 or index==len(catalog)-1:
+        print(f"generated {index+1}/{len(catalog)}: {aura_id} ({out.stat().st_size} bytes)")
