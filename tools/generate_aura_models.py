@@ -450,6 +450,10 @@ for index,aura in enumerate(catalog):
     transform=np.eye(4); transform[:3,:3]*=scale; transform[:3,3]=-center*scale
     scene.apply_transform(transform)
     out=OUT/f"{aura_id}.glb"
+    if out.exists() and out.stat().st_size>1024:
+        if index%100==0 or index==len(catalog)-1:
+            print(f"cached {index+1}/{len(catalog)}: {aura_id}")
+        continue
     scene.export(out)
-    if index%50==0 or index==len(catalog)-1:
+    if index%25==0 or index==len(catalog)-1:
         print(f"generated {index+1}/{len(catalog)}: {aura_id} ({out.stat().st_size} bytes)")
