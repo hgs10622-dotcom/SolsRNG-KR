@@ -312,13 +312,56 @@ main{
  .content{min-height:300px!important}
 }
 
+
+/* v0.4.0 — real screen navigation: summon is its own full-screen view */
+main{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr);
+ grid-template-rows:auto auto minmax(0,1fr);
+ gap:10px!important;
+ height:calc(100dvh - 54px)!important;
+ max-height:calc(100dvh - 54px)!important;
+ min-height:0!important;
+ padding:10px 18px 14px!important;
+ overflow:hidden!important;
+}
+main>.hero{grid-column:1;grid-row:1;display:flex!important;flex:initial!important;height:auto!important;min-height:46px;margin:0!important}
+main>.tabs{grid-column:1;grid-row:2;display:flex!important;position:relative;top:auto;margin:0!important;z-index:3}
+main>.layout{grid-column:1;grid-row:3;min-height:0!important;height:auto!important;overflow:hidden!important;display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;gap:0!important}
+main>.layout>.stage{grid-column:1;grid-row:1;width:100%;height:100%;min-height:0!important}
+main>.layout>.side{display:none!important}
+main>.content{grid-column:1;grid-row:3;display:none!important;min-height:0!important;height:100%;overflow:auto!important}
+main>.footer{display:none!important}
+main[data-view="summon"]>.hero{display:flex!important}
+main[data-view="summon"]>.layout{display:grid!important}
+main[data-view="summon"]>.content{display:none!important}
+main:not([data-view="summon"])>.hero,
+main:not([data-view="summon"])>.layout{display:none!important}
+main:not([data-view="summon"])>.content{display:block!important;grid-row:3}
+main:not([data-view="summon"])>.tabs .tab.active{background:#347de4;color:#fff}
+main[data-view="summon"]>.tabs .tab[data-tab="summon"]{background:#347de4;color:#fff}
+main[data-view="summon"]>.layout>.stage{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:34px minmax(0,1fr) auto!important}
+main[data-view="summon"] #orb{grid-column:1!important;grid-row:2!important;width:min(46vw,55vh,430px)!important;height:min(46vw,55vh,430px)!important}
+main[data-view="summon"] .result{grid-column:1!important;grid-row:2!important;align-self:end!important;justify-self:center!important;text-align:center!important;border:0!important;background:linear-gradient(0deg,#071426d9,transparent)!important;width:min(90%,700px)!important;padding:14px!important}
+main[data-view="summon"] .actions{grid-column:1!important;grid-row:3!important;justify-self:center!important}
+main[data-view="summon"] .stagehead{grid-column:1!important;grid-row:1!important}
+@media(max-width:780px){
+ main{height:calc(100dvh - 42px)!important;max-height:calc(100dvh - 42px)!important;padding:7px!important;grid-template-rows:auto auto minmax(0,1fr)!important;gap:7px!important}
+ main>.hero{min-height:38px}
+ main>.tabs{gap:3px;padding:4px;overflow-x:auto}
+ main>.tabs .tab{white-space:nowrap;padding:10px 8px;font-size:11px;flex:1 0 auto}
+ main>.content{padding:12px!important}
+ main[data-view="summon"] #orb{width:min(48vh,72vw,330px)!important;height:min(48vh,72vw,330px)!important}
+ main[data-view="summon"] .result{padding:8px 10px!important}
+}
+
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script></head><body>
 <header class="top"><div class="brand">AETHER<span> RNG</span></div><div class="version">WEB AURA SIMULATOR · v0.3.0</div></header>
 <main><section class="hero"><small>THE WORLD OF CHANCE</small><h1>운명을 뽑아라</h1><p>수많은 오라 중 단 하나의 특별한 빛을 찾아보세요.</p></section>
 <div class="layout"><section class="panel stage" id="summonStage"><div class="stagehead"><span>✦ 소환 게이트</span><span>행운 x1.00</span></div><div class="orb" id="orb" aria-label="획득 오라 시각화"></div><div class="result"><div class="rarity" id="rarity">READY TO ROLL</div><h2 id="auraName">아직 뽑지 않았어요</h2><p id="desc">버튼을 눌러 첫 번째 오라를 획득하세요.</p></div><div class="actions"><button class="primary" id="roll">✦ 오라 뽑기</button><button class="secondary" id="auto">자동 뽑기 시작</button><button class="secondary" id="equip" disabled>장착하기</button></div></section>
 <aside class="side"><section class="panel stats"><div class="heading">온라인 계정</div><div id="authStatus" style="font-size:12px;color:#91a0b8;margin-bottom:10px">서버 연결 확인 중...</div><input class="search" id="authUsername" type="text" placeholder="아이디 (3~20자, 영문·숫자·_)" maxlength="20" autocomplete="username" autocapitalize="none" spellcheck="false" style="width:100%;margin-bottom:8px"><input class="search" id="authPassword" type="password" placeholder="비밀번호 (8자 이상)" minlength="8" maxlength="128" autocomplete="current-password" style="width:100%;margin-bottom:8px"><div class="actions"><button class="primary" id="signUp">회원가입</button><button class="secondary" id="signIn">로그인</button><button class="secondary" id="signOut" style="display:none">로그아웃</button></div><p style="font-size:11px;color:#8192ad;line-height:1.6">이메일 입력 없이 아이디와 비밀번호만으로 가입·로그인합니다. 오라와 기록은 계정에 저장됩니다.</p></section><section class="panel stats"><div class="heading">내 기록</div><div class="statgrid"><div class="stat"><small>총 뽑기 횟수</small><b id="rolls">0</b></div><div class="stat"><small>발견한 오라</small><b id="found">0 / 1,000</b></div><div class="stat"><small>최고 희귀도</small><b id="best">-</b></div><div class="stat"><small>현재 장착</small><b id="equipped">없음</b></div></div></section><section class="panel stats"><div class="heading">희귀도 기본 확률</div><div class="odds" id="odds"></div></section><section class="panel stats"><div class="heading">설정</div><label class="toggle"><input type="checkbox" id="skip"> 연출 간소화</label> <label class="toggle"><input type="checkbox" id="sound"> 효과음</label><p style="font-size:11px;color:#8293ad;line-height:1.6">진행 상황은 현재 브라우저에 자동 저장됩니다.</p></section></aside></div>
-<div class="tabs"><button class="tab active" data-tab="inventory">인벤토리</button><button class="tab" data-tab="index">오라 도감</button><button class="tab" data-tab="odds">확률표</button><button class="tab" data-tab="leaderboard">랭킹</button><button class="tab" data-tab="info">정보 / 저장</button></div><section class="panel content" id="content"></section><div class="footer">AETHER RNG v0.3.0 · 오리지널 오라 수집 시뮬레이터 · 현금 결제 없음</div></main><div class="toast" id="toast"></div><div class="aura-detail" id="auraDetail" hidden onclick="if(event.target===this)closeAuraDetail()"><section class="aura-detail-card"><button class="aura-detail-close" onclick="closeAuraDetail()" aria-label="닫기">×</button><div id="auraDetailBody"></div></section></div>
+<div class="tabs"><button class="tab active" data-tab="summon">소환</button><button class="tab" data-tab="inventory">인벤토리</button><button class="tab" data-tab="index">오라 도감</button><button class="tab" data-tab="odds">확률표</button><button class="tab" data-tab="leaderboard">랭킹</button><button class="tab" data-tab="info">정보 / 저장</button></div><section class="panel content" id="content"></section><div class="footer">AETHER RNG v0.3.0 · 오리지널 오라 수집 시뮬레이터 · 현금 결제 없음</div></main><div class="toast" id="toast"></div><div class="aura-detail" id="auraDetail" hidden onclick="if(event.target===this)closeAuraDetail()"><section class="aura-detail-card"><button class="aura-detail-close" onclick="closeAuraDetail()" aria-label="닫기">×</button><div id="auraDetailBody"></div></section></div>
 <script>
 "use strict";
 const A=[
@@ -354,7 +397,7 @@ A.forEach(a=>{a.weight=RARITY_MASS[a.tier]/totalCountsByTier[a.tier];a.modelId=a
 
 const tiers=RARITY_NAMES.map((name,i)=>{const w=A.filter(a=>a.tier===i).reduce((s,a)=>s+a.weight,0),p=w/TOTAL_WEIGHT*100;return [name,p.toLocaleString("ko-KR",{maximumSignificantDigits:4})+"%",RARITY_COLORS[i],p,w]});
 const $=id=>document.getElementById(id),S={rolls:0,bag:{},equipped:null,best:-1,last:null,history:[]};
-let busy=false,autoOn=false,autoTimer=null,tab="inventory",sb=null,currentUser=null,onlineReady=false;
+let busy=false,autoOn=false,autoTimer=null,tab="summon",sb=null,currentUser=null,onlineReady=false;
 function localSave(){if(!currentUser)localStorage.setItem("aether-save",JSON.stringify(S))}
 function loadLocal(){try{let d=JSON.parse(localStorage.getItem("aether-save")||"null");if(d){S.rolls=+d.rolls||0;S.bag=d.bag||{};S.equipped=d.equipped||null;S.best=Number.isFinite(d.best)?d.best:-1;S.history=Array.isArray(d.history)?d.history:[]}}catch(e){}}
 function toast(s){$("toast").textContent=s;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),1800)}
@@ -701,6 +744,7 @@ function renderOddsPage(query="",rarity="all",page=0){
 }
 function render(){
  let h=$("content");
+ if(tab==="summon"){h.innerHTML="";return}
  if(tab==="inventory"){let list=A.filter(a=>S.bag[a.id]>0).sort((a,b)=>b.tier-a.tier);h.innerHTML='<div class="collectionhead"><div><b>내 인벤토리</b><div style="font-size:11px;color:#91a0b8;margin-top:4px">획득한 오라 '+list.length+'종</div></div></div><div class="grid">'+(list.length?list.map(a=>card(a,true)).join(""):'<p style="color:#91a0b8">아직 획득한 오라가 없습니다. 첫 뽑기를 시작해 보세요!</p>')+'</div>'}
  else if(tab==="index"){h.innerHTML='<div class="collectionhead"><div><b>오라 도감 · '+A.length.toLocaleString("ko-KR")+'종</b><div style="font-size:11px;color:#91a0b8">발견 여부와 관계없이 전체 오라를 확인할 수 있습니다.</div></div><input class="search" id="search" placeholder="이름·등급 검색"></div><div class="filter-row"><select id="rarityFilter"><option value="all">전체 등급</option>'+RARITY_NAMES.map(n=>'<option>'+n+'</option>').join("")+'</select></div><div class="grid" id="catalogCards"></div><div class="pager"><button class="secondary" id="catalogPrev">이전</button><span id="catalogPageInfo"></span><button class="secondary" id="catalogNext">다음</button></div>';let page=0,query="",rarity="all";const update=()=>renderCatalogPage(query,rarity,page);$("search").oninput=e=>{query=e.target.value;page=0;update()};$("rarityFilter").onchange=e=>{rarity=e.target.value;page=0;update()};$("catalogPrev").onclick=()=>{page=Math.max(0,page-1);update()};$("catalogNext").onclick=()=>{page++;update()};update()}
  else if(tab==="odds"){h.innerHTML='<div class="collectionhead"><div><b>전체 확률표 · '+A.length.toLocaleString("ko-KR")+'종</b><div style="font-size:11px;color:#91a0b8">모든 오라의 1회 뽑기 확률입니다. 등급별 확률은 합산 기준입니다.</div></div><input class="search" id="oddsSearch" placeholder="오라 검색"></div><div class="odds-summary">'+tiers.map(t=>'<div class="odds-summary-item"><b style="color:'+t[2]+'">'+t[0]+'</b><strong>'+t[1]+'</strong></div>').join("")+'</div><div class="odds-row odds-head"><b>오라</b><b>등급</b><b>확률</b><b>평균 1회</b></div><div id="oddsRows"></div><div class="pager"><button class="secondary" id="oddsPrev">이전</button><span id="oddsPageInfo"></span><button class="secondary" id="oddsNext">다음</button></div>';let page=0,query="";const update=()=>renderOddsPage(query,"all",page);$("oddsSearch").oninput=e=>{query=e.target.value;page=0;update()};$("oddsPrev").onclick=()=>{page=Math.max(0,page-1);update()};$("oddsNext").onclick=()=>{page++;update()};update()}
@@ -758,7 +802,7 @@ async function roll(){
 $("roll").onclick=roll;
 $("equip").onclick=async()=>{let a=A.find(x=>x.id===S.last);if(a){if(currentUser){let {error}=await sb.from("player_profiles").update({equipped_aura_id:a.id}).eq("user_id",currentUser.id);if(error){toast("장착 저장 실패: "+error.message);return}}S.equipped=a.id;stats();render();localSave();toast(a.name+" 오라 장착 완료")}};
 $("auto").onclick=()=>{if(onlineReady&&!currentUser){toast("자동 뽑기는 로그인 후 이용할 수 있습니다.");return}autoOn=!autoOn;if(autoOn){$("auto").textContent="자동 뽑기 중지";autoTimer=setInterval(()=>{if(!busy)roll()},1800);toast("자동 뽑기 시작")}else{clearInterval(autoTimer);$("auto").textContent="자동 뽑기 시작";toast("자동 뽑기 중지")}};
-document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));render()});
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));document.querySelector("main").dataset.view=tab;render()});document.querySelector("main").dataset.view=tab;
 $("signUp").onclick=()=>authAction("signup");$("signIn").onclick=()=>authAction("signin");$("signOut").onclick=async()=>{if(sb){await sb.auth.signOut();currentUser=null;loadLocal();stats();render();updateAuthUi();toast("로그아웃 완료")}};
 $("odds").innerHTML=tiers.map(t=>'<div><strong style="color:'+t[2]+'">'+t[0]+'</strong><span class="bar"><i style="width:'+Math.max(2,t[3])+'%;background:'+t[2]+'"></i></span><span>'+t[1]+'</span></div>').join("");
 setOrb(null);loadLocal();stats();render();updateAuthUi();initOnline();
