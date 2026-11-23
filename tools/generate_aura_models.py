@@ -531,6 +531,7 @@ for index,aura in enumerate(catalog):
         raise SystemExit(f"Unknown base model {archetype} for {aura_id}")
     seed=int.from_bytes(aura_id.encode("utf-8"),"little") % (2**32-1)
     rgb=css_rgb(aura.get("color","#8bdcff"))
+    accent=tuple(min(1.0,c*.58+.34) for c in rgb)
     scene=trimesh.Scene()
     source_parts=archetype_parts(archetype,rgb,seed,int(aura.get("tier",0)))
     additions=unique_parts(aura,seed)
