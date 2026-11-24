@@ -707,74 +707,10 @@ function buildAura3D(item){
    particles(600,2,.022,0xffd29c);
  }
 
- // V0.5 MODEL VARIANTS: every numbered aura receives its own deterministic 3D sculpture.
- // The 18 handcrafted base auras keep their dedicated GLB files; the 982 numbered
- // collection entries use individually parameterized geometry instead of reusing one base mesh.
- if(Number.isInteger(item.variant) && item.variant > 0){
-  const seed=item.variant;
-  let state=(seed*1664525+1013904223)>>>0;
-  const rnd=()=>{state=(state*1664525+1013904223)>>>0;return state/4294967296};
-  const pick=(arr)=>arr[Math.floor(rnd()*arr.length)];
-  const accent=new T.Color(item.color).offsetHSL((rnd()-.5)*.34,.12,(rnd()-.5)*.18);
-  const accentMat=material(accent,1.35,.16,.78), pearl=material(0xeaf7ff,.82,.2,.62);
-  // Clear the shared tier placeholder; keep only the soft outer glow.
-  group.children.slice().forEach(child=>{
-   if(child===glow)return;
-   group.remove(child);
-  });
-  const family=seed%18, size=.58+rnd()*.38;
-  let core;
-  if(family===0) core=add(new T.IcosahedronGeometry(size,2),solid);
-  else if(family===1) core=add(new T.DodecahedronGeometry(size,1),accentMat);
-  else if(family===2) core=add(new T.OctahedronGeometry(size,2),solid);
-  else if(family===3) core=add(new T.TetrahedronGeometry(size,2),accentMat);
-  else if(family===4) core=add(new T.TorusKnotGeometry(.62+rnd()*.22,.13+rnd()*.1,240,24,2+Math.floor(rnd()*4),3+Math.floor(rnd()*5)),solid);
-  else if(family===5) core=add(new T.TorusGeometry(.72+rnd()*.22,.18+rnd()*.08,28,120),accentMat);
-  else if(family===6) core=add(new T.CapsuleGeometry(.38+rnd()*.2,.72+rnd()*.5,12,32),solid);
-  else if(family===7) core=add(new T.ConeGeometry(.62+rnd()*.3,1.55+rnd()*.45,7+Math.floor(rnd()*8),3),accentMat);
-  else if(family===8) core=add(new T.CylinderGeometry(.3+rnd()*.3,.65+rnd()*.2,1.45+rnd()*.4,5+Math.floor(rnd()*9),4,true),solid);
-  else if(family===9) core=add(new T.SphereGeometry(size,48,32),new T.MeshPhysicalMaterial({color:item.color,emissive:item.color,emissiveIntensity:1.05,metalness:.25,roughness:.08,clearcoat:1,clearcoatRoughness:.04}));
-  else if(family===10) core=add(new T.TorusKnotGeometry(.72,.075,320,18,3,7),accentMat);
-  else if(family===11) core=add(new T.IcosahedronGeometry(size,0),new T.MeshPhysicalMaterial({color:item.color,emissive:item.color,emissiveIntensity:.8,metalness:.85,roughness:.13,clearcoat:1}));
-  else if(family===12) core=add(new T.SphereGeometry(size,64,48,0,Math.PI*2,0,Math.PI*(.55+rnd()*.4)),solid);
-  else if(family===13) core=add(new T.TorusGeometry(.78,.09,10,9+Math.floor(rnd()*9)),accentMat);
-  else if(family===14) core=add(new T.CylinderGeometry(.72,.72,1.15,3+Math.floor(rnd()*6),1),solid);
-  else if(family===15) core=add(new T.OctahedronGeometry(size,0),new T.MeshPhysicalMaterial({color:item.color,metalness:.92,roughness:.08,clearcoat:1,emissive:item.color,emissiveIntensity:.9}));
-  else if(family===16) core=add(new T.TorusKnotGeometry(.68,.16,180,16,5,2),solid);
-  else core=add(new T.DodecahedronGeometry(size,2),accentMat);
-  core.rotation.set(rnd()*Math.PI,rnd()*Math.PI,rnd()*Math.PI);
-  core.scale.set(.82+rnd()*.48,.82+rnd()*.48,.82+rnd()*.48);
-  // Layered orbital architecture is varied per model, not randomly on each render.
-  const ringTotal=2+(seed%5);
-  for(let k=0;k<ringTotal;k++){
-   const radius=1.02+k*.115+(seed%7)*.012;
-   const ring=add(new T.TorusGeometry(radius,.012+(k%3)*.008,10,128),k%2?pearl:accentMat);
-   ring.rotation.set(rnd()*Math.PI,rnd()*Math.PI,rnd()*Math.PI);
-   ring.scale.set(1+rnd()*.35,.62+rnd()*.45,.8+rnd()*.35);
-   fxSpin.push({mesh:ring,x:(rnd()-.5)*.002,y:(rnd()-.5)*.003,z:(rnd()-.5)*.002});
-  }
-  // Individually positioned crystals/spines form a unique silhouette for each ID.
-  const spikeCount=5+(seed%9);
-  for(let k=0;k<spikeCount;k++){
-   const a=k/spikeCount*Math.PI*2+(seed%13)*.11;
-   const h=.22+rnd()*.55,rad=.82+rnd()*.42;
-   const spike=add(new T.ConeGeometry(.055+rnd()*.075,h,5+Math.floor(rnd()*4),2),k%3?accentMat:pearl);
-   spike.position.set(Math.cos(a)*rad,Math.sin(a)*rad,(rnd()-.5)*.5);
-   spike.rotation.z=-a+Math.PI/2;spike.rotation.x=(rnd()-.5)*.8;
-  }
-  const satellites=3+(seed%7);
-  for(let k=0;k<satellites;k++){
-   const a=k/satellites*Math.PI*2+(seed%17)*.07,rad=1.18+(k%3)*.12;
-   const bead=add(k%2?new T.OctahedronGeometry(.09+rnd()*.09,1):new T.SphereGeometry(.085+rnd()*.08,20,16),k%2?pearl:accentMat);
-   bead.position.set(Math.cos(a)*rad,Math.sin(a)*rad,(rnd()-.5)*.65);
-  }
-  particles(150+(seed%180),1.85,.014+(seed%4)*.004,accent);
- }
-
  // Each aura uses an original GLB generated into this repository.
  // Resolve relative to the GitHub Pages project path (works at /SolsRNG-KR/).
  const localModelUrl=new URL("./assets/aura/"+item.id+".glb",document.baseURI).href;
- if(T.GLTFLoader && !Number.isInteger(item.variant)){
+ if(T.GLTFLoader){
   const glbLoader=new T.GLTFLoader();
   glbLoader.load(localModelUrl,gltf=>{
    if(!alive)return;
