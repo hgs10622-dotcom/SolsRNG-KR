@@ -736,6 +736,256 @@ def themed_parts(aura, seed):
     return parts
 
 
+
+
+def sculpted_shard(height, width, depth, rgb, seed, pos, twist=0.0):
+    """A custom multi-faceted, asymmetrically cut crystal rather than a primitive cone."""
+    rng=np.random.default_rng(seed)
+    rings=[
+        (-.52,.12),(-.34,.58),(-.08,1.0),(.18,.78),(.38,.43),(.5,.025)
+    ]
+    sides=7+(seed%4)
+    verts=[]
+    for row,(y,scale) in enumerate(rings):
+        for j in range(sides):
+            a=math.tau*j/sides+twist+row*.075
+            wobble=1+float(rng.uniform(-.09,.09))
+            verts.append([math.cos(a)*width*scale*wobble,
+                          y*height,
+                          math.sin(a)*depth*scale*wobble])
+    faces=[]
+    for row in range(len(rings)-1):
+        for j in range(sides):
+            a=row*sides+j; b=row*sides+(j+1)%sides
+            c=(row+1)*sides+(j+1)%sides; d=(row+1)*sides+j
+            if (j+row+seed)%2:
+                faces.extend([(a,b,c),(a,c,d)])
+            else:
+                faces.extend([(a,b,d),(b,c,d)])
+    faces.extend([(0,j+1 if j+1<sides else 0, (j+1)%sides) for j in range(sides)])
+    mesh=trimesh.Trimesh(vertices=verts,faces=faces,process=True)
+    mesh.apply_translation(pos)
+    mesh.visual.material=mat(rgb,.88,.12,.92)
+    return mesh
+
+
+def atelier_parts(aura, seed):
+    """Second sculptural pass: semantic signature forms, custom-cut geometry and tier finish."""
+    rng=np.random.default_rng(seed ^ 0xA71E2026)
+    name=str(aura.get("name",""))
+    desc=str(aura.get("description",""))
+    text_blob=name+" "+desc
+    tier=int(aura.get("tier",0))
+    rgb=css_rgb(aura.get("color","#8bdcff"))
+    accent=tuple(min(1,c*.55+.38) for c in rgb)
+    pale=tuple(min(1,c*.20+.76) for c in rgb)
+    shadow=tuple(c*.16 for c in rgb)
+    parts=[]
+
+    # Semantic motif selection: the name takes precedence, description resolves ambiguity.
+    motifs=[
+        (("용","드래곤","비늘","dragon"),"wyrm"),
+        (("왕관","왕","군주","왕좌"),"regalia"),
+        (("꽃","장미","벚꽃","연꽃","새싹","꽃잎"),"bloom"),
+        (("검","칼날","검성","창","창끝"),"edge"),
+        (("달","월식","초승달","월광"),"lunar"),
+        (("태양","일식","광휘","태양풍"),"solar"),
+        (("심해","바다","해류","파도","고래"),"abyss"),
+        (("숲","나무","고목","덩굴","잎"),"grove"),
+        (("시계","시간","초침","영겁","크로노스"),"clock"),
+        (("천사","천국","성역","성당","세라프"),"sanctuary"),
+        (("악마","지옥","저주","마왕","심연"),"infernal"),
+        (("번개","폭풍","천둥","뇌전"),"tempest"),
+        (("얼음","빙하","서리","눈꽃","설원"),"glacier"),
+        (("유리","거울","수정","프리즘","수정궁"),"glass"),
+        (("우주","은하","성운","별","성좌","별빛"),"cosmic"),
+        (("기계","엔진","기어","증기","회로"),"mechanism"),
+        (("나비","날개","깃털","불사조","피닉스"),"winged"),
+        (("유성","혜성","운석","별똥별"),"meteor"),
+        (("유령","망령","영혼","환영","그림자"),"wraith"),
+        (("문","관문","차원","포탈","차원문"),"portal"),
+    ]
+    motif="relic"
+    for words,key in motifs:
+        if any(word in text_blob for word in words):
+            motif=key
+            break
+
+    phase=float(rng.uniform(0,math.tau))
+    # The central sculpture is a bespoke cut form; its proportions vary independently per ID.
+    core_kind=seed%6
+    if core_kind==0:
+        core=trimesh.creation.icosphere(subdivisions=3,radius=.48)
+        v=core.vertices.copy()
+        v[:,0]*=float(rng.uniform(.72,1.28))
+        v[:,1]*=float(rng.uniform(.82,1.42))
+        v[:,2]*=float(rng.uniform(.72,1.25))
+        radial=1+.10*np.sin(v[:,0]*9+phase)*np.cos(v[:,2]*7-phase)
+        core.vertices=v*radial[:,None]
+    elif core_kind==1:
+        core=trimesh.creation.octahedron()
+        core.apply_scale([float(rng.uniform(.48,.72)),float(rng.uniform(.62,.94)),float(rng.uniform(.48,.72))])
+        core.subdivide()
+    elif core_kind==2:
+        core=trimesh.creation.icosphere(subdivisions=2,radius=.52)
+        v=core.vertices.copy()
+        v[:,1]*=1.25
+        v[:,0]*=(1+.16*np.sin(np.arctan2(v[:,2],v[:,0])*5+phase))
+        core.vertices=v
+    elif core_kind==3:
+        core=trimesh.creation.cone(.58,1.15,sections=9+seed%7)
+        core.apply_transform(trimesh.transformations.rotation_matrix(math.pi/2,[1,0,0]))
+        core.apply_transform(trimesh.transformations.rotation_matrix(phase,[0,1,0]))
+    elif core_kind==4:
+        core=trimesh.creation.icosphere(subdivisions=3,radius=.48)
+        v=core.vertices.copy()
+        v[:,0]+=0.12*np.sin(v[:,1]*8+phase)
+        v[:,2]+=0.10*np.cos(v[:,0]*7-phase)
+        core.vertices=v
+    else:
+        core=trimesh.creation.cylinder(radius=.43,height=1.05,sections=8+seed%9)
+        core.apply_transform(trimesh.transformations.rotation_matrix(phase,[0,1,0]))
+    core.visual.material=mat(shadow if tier>=5 else rgb,.86,.13,.68+tier*.035)
+    parts.append(core)
+
+    # Motif-specific hero silhouette and secondary structures.
+    if motif=="wyrm":
+        for side in (-1,1):
+            pts=[]
+            for j in range(42):
+                q=j/41
+                pts.append((side*(.18+1.45*q),.18+math.sin(q*math.pi*2+phase)*(.18+q*.12),.2+q*.35))
+            parts.append(tube(pts,.055,accent))
+            for j in range(5):
+                q=.2+j*.15
+                parts.append(sculpted_shard(.48+float(rng.random())*.3,.12,.16,pale,seed+j*13,(side*(.35+q*1.1),.35+q*.4,.16),twist=phase+j*.2))
+        for j in range(7):
+            a=phase+j*math.tau/7
+            parts.append(sculpted_shard(.55,.12,.14,accent,seed+j*7,(.72*math.cos(a),-.12,.72*math.sin(a)),a))
+    elif motif in ("regalia","sanctuary"):
+        count=7+(seed%5)
+        for j in range(count):
+            a=phase+j*math.tau/count
+            radius=.76+.12*math.sin(j*2.1)
+            parts.append(sculpted_shard(.8+float(rng.random())*.55,.13,.17,pale,seed+j*19,(radius*math.cos(a),.48+.12*math.sin(a*3),radius*math.sin(a)),a))
+            if j%2==0:
+                parts.append(mesh_sphere(.085,accent,(1.05*math.cos(a),.12,1.05*math.sin(a)),sub=2,metallic=.95,rough=.1,glow=1))
+        for side in (-1,1):
+            parts.append(tube([[side*.25,-.6,0],[side*.72,-.1,.1],[side*.82,.62,0],[side*.4,1.12,-.08]],.055,accent))
+    elif motif=="bloom":
+        count=6+seed%5
+        for j in range(count):
+            a=phase+j*math.tau/count
+            petal=mesh_sphere(.42,accent,(.62*math.cos(a),.18,.62*math.sin(a)),(.32,1.42,.22),4,.55,.2,.72)
+            petal.apply_transform(trimesh.transformations.rotation_matrix(a,[0,1,0]))
+            parts.append(petal)
+            parts.append(sculpted_shard(.42,.10,.09,pale,seed+j*11,(.95*math.cos(a),.52,.95*math.sin(a)),a))
+        parts.append(torus(.38,.045,pale,(.2,.8,.3),112,14))
+    elif motif=="edge":
+        for side in (-1,1):
+            parts.append(sculpted_shard(2.0,.23,.12,pale,seed+int(side*3),(side*.27,.0,0),phase+side*.15))
+            parts.append(tube([[side*.12,-1.0,.12],[side*.12,-.55,.2],[side*.42,-.22,.12]],.055,accent))
+        parts.append(torus(.48,.055,accent,(0,1,0),96,12))
+    elif motif in ("lunar","solar","cosmic","meteor"):
+        for j in range(3+(seed%3)):
+            pts=[]
+            for k in range(100):
+                q=k/99
+                a=phase+j*math.tau/5+q*math.tau*(1.6+j*.12)
+                r=.22+q*(1.15+.12*j)
+                pts.append((math.cos(a)*r,.32*math.sin(q*math.tau*2+j),math.sin(a)*r))
+            parts.append(tube(pts,.022+j*.006,accent if j%2 else pale))
+        for j in range(9+seed%8):
+            a=phase+j*2.399
+            r=.75+float(rng.random())*.8
+            parts.append(mesh_sphere(.035+float(rng.random())*.055,pale,(r*math.cos(a),float(rng.uniform(-.7,.7)),r*math.sin(a)),sub=2,metallic=.9,rough=.1,glow=1))
+    elif motif in ("abyss","glacier","infernal","tempest","wraith"):
+        count=7+seed%5
+        for j in range(count):
+            a=phase+j*math.tau/count
+            height=.9+float(rng.random())*(.65+tier*.09)
+            p=(.78*math.cos(a),float(rng.uniform(-.18,.22)),.78*math.sin(a))
+            parts.append(sculpted_shard(height,.16,.13,accent if j%2 else pale,seed+j*17,p,a))
+            if motif=="abyss":
+                parts.append(tube([p,(p[0]*1.5,p[1]-.35,p[2]*1.5),(p[0]*1.85,p[1]-.75,p[2]*1.85)],.025,pale))
+    elif motif=="grove":
+        for side in (-1,1):
+            for j in range(4):
+                x=side*(.25+j*.16)
+                parts.append(tube([[0,-1.05,0],[x*.55,-.35,.08],[x,.28,.12],[x*1.2,.88,.02]],.035,accent))
+                leaf=mesh_sphere(.32,pale,(x,.32+j*.12,.1),(.22,1.25,.18),3,.42,.3,.45)
+                leaf.apply_transform(trimesh.transformations.rotation_matrix(side*.58,[0,0,1]))
+                parts.append(leaf)
+    elif motif=="clock":
+        for j in range(12):
+            a=phase+j*math.tau/12
+            parts.append(cyl((.9*math.cos(a),.9*math.sin(a),.12),(1.08*math.cos(a),1.08*math.sin(a),.12),.035,pale,8))
+        parts.append(torus(.92,.065,accent,(.12,.08,1),128,16))
+        parts.append(cyl((0,0,.18),(.0,.62,.18),.035,pale,10))
+        parts.append(cyl((0,0,.2),(.52,-.32,.2),.027,accent,10))
+    elif motif=="glass":
+        for j in range(5+seed%4):
+            a=phase+j*math.tau/(5+seed%4)
+            parts.append(sculpted_shard(1.0+float(rng.random())*.8,.12+float(rng.random())*.08,.12,pale,seed+j*23,(.65*math.cos(a),.1,.65*math.sin(a)),a))
+        parts.append(torus(.68,.025,accent,(.35,.7,.2),112,10))
+    elif motif=="mechanism":
+        for axis in ((1,0,0),(0,1,0),(0,0,1)):
+            parts.append(torus(.72,.07,accent,axis,96,14))
+        for j in range(8):
+            a=phase+j*math.tau/8
+            parts.append(cyl((.5*math.cos(a),-.18,.5*math.sin(a)),(.98*math.cos(a),.18,.98*math.sin(a)),.045,pale,8))
+            parts.append(mesh_sphere(.09,accent,(.98*math.cos(a),.18,.98*math.sin(a)),sub=2,metallic=.95,rough=.12,glow=.8))
+    elif motif=="winged":
+        for side in (-1,1):
+            for row in range(6):
+                x=side*(.24+row*.13)
+                pts=[(side*.16,-.15,.0),(x,.12+row*.1,.05),(side*(.9+row*.16),.72+row*.08,-.08),(side*(.62+row*.18),1.0+row*.08,-.16)]
+                parts.append(tube(pts,.045-row*.003,pale if row%2 else accent))
+                if row%2==0:
+                    parts.append(sculpted_shard(.72,.11,.08,accent,seed+row*5,(side*(.75+row*.15),.5+row*.12,-.08),side*.2))
+    elif motif=="portal":
+        for ring in range(3):
+            parts.append(torus(.72+ring*.23,.035+ring*.008,accent if ring%2 else pale,(.12+ring*.24,.1,.9),128,12))
+        for side in (-1,1):
+            parts.append(tube([[side*.58,-1.05,0],[side*.9,-.45,.1],[side*.82,.45,.05],[side*.48,1.12,0]],.07,accent))
+
+    # Bespoke cut ornaments: count, twist, placement and profile are ID-specific.
+    shard_count=4+(seed%5)+tier
+    for j in range(shard_count):
+        a=phase+j*math.tau/shard_count+float(rng.uniform(-.12,.12))
+        r=.92+float(rng.uniform(-.18,.36))
+        h=.38+float(rng.random())*(.65+tier*.14)
+        p=(r*math.cos(a),float(rng.uniform(-.48,.42)),r*math.sin(a))
+        parts.append(sculpted_shard(h,.07+float(rng.random())*.09,.08+float(rng.random())*.07,
+                                    accent if j%3 else pale,seed+j*29,p,a))
+    # Individually designed orbital armature, deliberately non-coplanar and unbalanced.
+    ring_count=1+(seed%3)+(tier//3)
+    for j in range(ring_count):
+        axis=rng.normal(size=3)
+        radius=.92+float(rng.random())*.58
+        parts.append(torus(radius,.012+float(rng.random())*.024,
+                           pale if j%2 else accent,axis,96+(seed+j*7)%48,8+(j%4)*2))
+    # Rarity finish: more complex architecture, not merely a larger glow value.
+    if tier>=4:
+        for side in (-1,1):
+            for row in range(2+tier//2):
+                x=side*(.38+row*.18)
+                parts.append(tube([[side*.18,-.28,.12],[x,.22,.16],[side*(1.1+row*.12),.78,.02],[side*(.72+row*.2),1.35,-.1]],.035+tier*.003,accent if row%2 else pale))
+    if tier>=6:
+        for j in range(8+tier):
+            a=phase+j*math.tau/(8+tier)
+            parts.append(sculpted_shard(1.05+float(rng.random())*.65,.12,.13,pale,seed+j*31,(1.45*math.cos(a),.28,1.45*math.sin(a)),a))
+        parts.append(torus(1.82,.045,pale,(.42,.18,.76),160,16))
+    if tier>=7:
+        # Apex rarity receives a distinctive crown-vault with suspended keystones.
+        for j in range(5):
+            a=phase+j*math.tau/5
+            p=(1.9*math.cos(a),1.05+.15*math.sin(a*2),1.9*math.sin(a))
+            parts.append(mesh_sphere(.11,pale,p,sub=3,metallic=1,rough=.08,glow=1))
+            parts.append(tube([[.25*math.cos(a),.35,.1],[.95*math.cos(a),.72,.05],p],.035,accent))
+    return parts
+
+
 catalog_path=Path("supabase/aura_catalog.json")
 if not catalog_path.exists():
     raise SystemExit("supabase/aura_catalog.json is required to build unique aura assets")
@@ -750,13 +1000,13 @@ for index,aura in enumerate(catalog):
     seed=int.from_bytes(aura_id.encode("utf-8"),"little") % (2**32-1)
     rgb=css_rgb(aura.get("color","#8bdcff"))
     scene=trimesh.Scene()
-    parts=themed_parts(aura,seed)
+    parts=themed_parts(aura,seed) + atelier_parts(aura,seed)
     for i,m in enumerate(parts):
         if hasattr(m,"visual"):
-            shade=0.82+((seed+i*37)%19)/100
+            shade=0.78+((seed+i*37)%27)/100
             base=rgb if i%4 in (0,1) else (tuple(min(1,c*.58+.36) for c in rgb) if i%4==2 else tuple(min(1,c*.24+.72) for c in rgb))
             part_rgb=tuple(min(1.0,c*shade) for c in base)
-            m.visual.material=mat(part_rgb,.62+((seed+i)%32)/100,.09+((seed+i*3)%38)/100,.72+((seed+i*7)%28)/100)
+            m.visual.material=mat(part_rgb,.58+((seed+i*13)%39)/100,.075+((seed+i*3)%42)/100,.58+((seed+i*7)%48)/100)
         scene.add_geometry(m,geom_name=f"{aura_id}_mesh_{i:03d}",node_name=f"{aura_id}_part_{i:03d}")
     bounds=scene.bounds
     center=(bounds[0]+bounds[1])/2
