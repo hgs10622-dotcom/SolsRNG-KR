@@ -517,6 +517,225 @@ def unique_parts(aura, seed):
                 parts.append(tube(pts,.035+ tier*.003, pale if w%2 else accent))
     return parts
 
+
+def themed_parts(aura, seed):
+    """Build a name-led, tier-aware sculptural identity for one catalog entry."""
+    rng=np.random.default_rng(seed)
+    name=aura.get("name","")
+    desc=aura.get("description","")
+    tier=int(aura.get("tier",0))
+    rgb=css_rgb(aura.get("color","#8bdcff"))
+    accent=tuple(min(1,c*.58+.36) for c in rgb)
+    pale=tuple(min(1,c*.24+.72) for c in rgb)
+    deep=tuple(c*.20 for c in rgb)
+    parts=[]
+    def add(x): parts.append(x)
+    def point(radius, angle, y=0):
+        return (math.cos(angle)*radius,y,math.sin(angle)*radius)
+
+    # Noun-driven silhouettes: each family has its own primary geometry.
+    families=[
+      (("물방울","구슬","유리구슬","보석","핵","핵심"),"prism"),
+      (("별가루","별","성운","은하","우주","별빛"),"cosmos"),
+      (("나뭇잎","새싹","꽃잎","꽃씨","꽃불","꽃"),"flora"),
+      (("조약돌","모래알","파편","암석","바위","대지"),"geode"),
+      (("물결","해류","소용돌이","파도","심해","폭풍","천둥"),"vortex"),
+      (("깃털","천둥새","새","날개"),"wings"),
+      (("구름","숨결","안개","영혼"),"mist"),
+      (("반딧불","불씨","화염","불꽃","태양","꽃불"),"flame"),
+      (("눈송이","서리","얼음","빙하","수정"),"frost"),
+      (("달팽이","나선","시간","시계","크로노스"),"spiral"),
+      (("성역","성당","수정궁","천궁","궁전","신전"),"sanctum"),
+      (("창세문","문","차원","차원핵","차원문","관문"),"gate"),
+      (("왕관","왕좌","군주","세라프","천사"),"crown"),
+      (("혜성","유성","혜성핵","궤도"),"comet"),
+      (("검","창","칼날","창조"),"blade"),
+    ]
+    family="relic"
+    for words,key in families:
+        if any(w in name for w in words):
+            family=key
+            break
+    # adjective/prefix gives a second independent design influence
+    mood=" ".join(name.split()[:2])
+    phase=(seed%17)/17*math.tau
+    scale=.82+(seed%9)*.055
+    n=5+(seed%5)
+    if family=="prism":
+        add(mesh_sphere(.48,rgb,(0,0,0),scale=(.78,1.18,.78),sub=4,metallic=.82,rough=.10,glow=.85))
+        for i in range(5):
+            a=phase+i*math.tau/5
+            c=crystal(1.05+(i%3)*.28,accent,point(.72,a,.12*math.sin(a)),.19)
+            c.apply_transform(trimesh.transformations.rotation_matrix(a,[0,1,0])); add(c)
+        add(torus(.92,.035,pale,(.3,.8,.2),96,12))
+    elif family=="cosmos":
+        add(mesh_sphere(.38,deep,(0,0,0),sub=3,metallic=.9,rough=.06,glow=.35))
+        for arm in range(3+seed%3):
+            pts=[]
+            for j in range(90):
+                q=j/89; a=phase+arm*math.tau/(3+seed%3)+q*math.tau*2.1
+                r=.12+1.45*q
+                pts.append((math.cos(a)*r, .18*math.sin(q*18+arm), math.sin(a)*r))
+            add(tube(pts,.025+(tier*.003),accent if arm%2 else pale))
+        for i in range(18+tier*3):
+            a=phase+i*2.399; r=.45+(i%7)*.19
+            add(mesh_sphere(.025+(i%3)*.012,pale,point(r,a,.3*math.sin(i)),sub=2,metallic=.7,rough=.12,glow=1))
+    elif family=="flora":
+        for i in range(5+(seed%4)):
+            a=phase+i*math.tau/(5+(seed%4))
+            petal=mesh_sphere(.34,accent,point(.42,a,.12),(.42,1.35,.20),3,.55,.22,.7)
+            petal.apply_transform(trimesh.transformations.rotation_matrix(a,[0,1,0])); add(petal)
+            add(crystal(.62,pale,point(.88,a,.12),.105))
+        add(mesh_sphere(.29,rgb,(0,0,0),sub=3,metallic=.45,rough=.22,glow=.7))
+        for side in (-1,1):
+            add(tube([[0,-.8,0],[side*.28,-.25,.08],[0,.35,0]],.035,pale))
+    elif family=="geode":
+        core=trimesh.creation.icosphere(subdivisions=3,radius=.68)
+        core.apply_scale([.85+scale*.12,.7+scale*.15,.8+scale*.1])
+        core.visual.material=mat(deep,.92,.22,.35); add(core)
+        for i in range(9+tier*2):
+            a=phase+i*math.tau/(9+tier*2); r=.58+float(rng.random())*.18
+            c=crystal(.48+float(rng.random())*.72,accent if i%3 else pale,point(r,a,float(rng.uniform(-.25,.25))),.10+float(rng.random())*.12)
+            c.apply_transform(trimesh.geometry.align_vectors([0,0,1],np.array(point(1,a,.35))))
+            add(c)
+    elif family=="vortex":
+        for strand in range(5):
+            pts=[]
+            for j in range(110):
+                q=j/109; a=phase+strand*math.tau/5+q*math.tau*(2.1+tier*.12)
+                r=.22+q*(1.18+.12*math.sin(q*math.pi))
+                pts.append((math.cos(a)*r,(q-.5)*1.9,math.sin(a)*r))
+            add(tube(pts,.027+strand*.003,accent if strand%2 else pale))
+        add(mesh_sphere(.31,deep,(0,0,0),sub=3,metallic=.9,rough=.08,glow=.2))
+    elif family=="wings":
+        for side in (-1,1):
+            for row in range(4+tier//2):
+                pts=[]
+                for j in range(30):
+                    q=j/29
+                    pts.append((side*(.12+q*(.85+row*.12)),.22+row*.11+math.sin(q*math.pi)*(.25+row*.07),-.18+row*.12+q*.18))
+                add(tube(pts,.045-row*.003,accent if row%2 else pale))
+                if row%2==0: add(crystal(.55+row*.1,pale,(side*(.9+row*.12),.45+row*.12,.0),.09))
+        add(mesh_sphere(.28,rgb,(0,0,0),sub=3,glow=.8))
+    elif family=="mist":
+        for layer in range(5+tier):
+            pts=[]
+            for j in range(70):
+                q=j/69; x=-1.35+2.7*q
+                y=(layer-2)*.22+math.sin(q*math.tau+layer*.8)*(.2+layer*.015)
+                z=.28*math.cos(q*math.tau*1.3+layer)
+                pts.append((x,y,z))
+            add(tube(pts,.035+layer*.002,accent if layer%2 else pale))
+        for i in range(8):
+            a=phase+i*math.tau/8
+            add(mesh_sphere(.15,pale,point(.75,a,.25*math.sin(i)),scale=(1.2,.7,1),sub=2,glow=.8))
+    elif family=="flame":
+        add(mesh_sphere(.48,deep,(0,-.12,0),sub=3,metallic=.45,rough=.18,glow=1))
+        for i in range(9+tier*2):
+            a=phase+i*math.tau/(9+tier*2)
+            h=.85+float(rng.random())*(.8+tier*.12)
+            pts=[point(.2,a,-.4),point(.48,a+.12,.0),point(.35+float(rng.random())*.25,a-.08,h)]
+            add(tube(pts,.045+float(rng.random())*.025,accent if i%2 else pale))
+            add(crystal(h*.7,pale,point(.42,a,h*.32),.12))
+    elif family=="frost":
+        add(mesh_sphere(.38,deep,(0,0,0),sub=2,metallic=.85,rough=.08,glow=.5))
+        for i in range(8):
+            a=phase+i*math.tau/8
+            start=point(.12,a,0); mid=point(.65,a,.05); end=point(1.25,a,.0)
+            add(cyl(start,mid,.07,accent,8)); add(cyl(mid,end,.045,pale,8))
+            for branch in (-1,1):
+                add(cyl(mid,point(.95,a+branch*.28,.15),.035,accent,7))
+            add(crystal(.42,pale,end,.09))
+    elif family=="spiral":
+        for strand in range(2+(seed%3)):
+            pts=[]
+            for j in range(150):
+                q=j/149; a=phase+q*math.tau*(2.8+strand*.25)+strand*math.tau/3
+                r=.18+q*(.95+strand*.08)
+                pts.append((math.cos(a)*r,(q-.5)*2.1,math.sin(a)*r))
+            add(tube(pts,.045 if strand==0 else .025,accent if strand%2 else pale))
+        add(mesh_sphere(.22,rgb,(0,0,0),sub=3,metallic=1,rough=.05,glow=.8))
+    elif family in ("sanctum","gate"):
+        # Tier 3+ becomes architectural: buttresses, arches, layered vaults.
+        radius=1.0 if family=="gate" else .82
+        for i in range(8+(tier*2)):
+            a=phase+i*math.tau/(8+tier*2)
+            x,z=math.cos(a)*radius,math.sin(a)*radius
+            add(cyl((x*.78,-.95,z*.78),(x, .95,z),.065,accent,10))
+            add(mesh_sphere(.12,pale,(x,1.0,z),sub=2,metallic=.9,rough=.12,glow=.8))
+        for ring in range(2+(tier//2)):
+            add(torus(radius+ring*.18,.035 if ring==0 else .022,accent if ring%2 else pale,(.2+ring*.2,1,.1),112,10))
+        for side in (-1,1):
+            add(tube([[side*.28,-.7,0],[side*.55,.0,.12],[side*.38,.85,0],[side*.12,1.25,-.08]],.065,pale))
+            add(crystal(.85+tier*.12,accent,(side*.42,1.15,0),.16))
+        add(mesh_sphere(.32,rgb,(0,0,0),sub=3,metallic=.8,rough=.12,glow=.9))
+    elif family=="crown":
+        add(mesh_sphere(.38,deep,(0,-.25,0),sub=3,metallic=.85,rough=.1,glow=.55))
+        for i in range(9+tier):
+            a=phase+i*math.tau/(9+tier)
+            r=.62+.12*math.sin(i*2.4)
+            add(cyl(point(.25,a,-.2),point(r,a,.1),.055,accent,9))
+            add(crystal(1.0+(i%4)*.2,pale,point(r,a,.58),.14))
+        add(torus(.72,.07,accent,(.2,1,.15),100,14))
+    elif family=="comet":
+        add(mesh_sphere(.48,rgb,(0,0,0),scale=(1.1,.8,.9),sub=4,metallic=.75,rough=.12,glow=.85))
+        for strand in range(7):
+            pts=[]
+            for j in range(70):
+                q=j/69
+                pts.append((-.2-2.0*q,.3*math.sin(q*5+strand), (strand-3)*.11+q*.22))
+            add(tube(pts,.025+(strand%3)*.009,accent if strand%2 else pale))
+        for i in range(7):
+            a=phase+i*math.tau/7
+            add(torus(.65+i*.07,.018,pale,(math.cos(a),.4,math.sin(a)),72,8))
+    elif family=="blade":
+        for side in (-1,1):
+            add(cyl((side*.08,-1.25,0),(side*.08,1.1,0),.055,accent,8))
+            add(crystal(1.6,pale,(side*.08,.45,0),.13))
+        add(mesh_sphere(.28,rgb,(0,-.2,0),scale=(.8,1.5,.7),sub=3,glow=.9))
+        add(torus(.48,.045,accent,(0,1,0),72,10))
+    else:
+        # Rare fallback identity: asymmetric relic monolith with split floating plates.
+        add(mesh_sphere(.38,deep,(0,0,0),sub=3,metallic=.9,rough=.08,glow=.6))
+        for i in range(7):
+            a=phase+i*math.tau/7
+            p=trimesh.creation.box(extents=(.3,.9,.22))
+            p.apply_transform(trimesh.transformations.rotation_matrix(a,[0,1,0]))
+            p.apply_translation(point(.9,a,.12*math.sin(i)))
+            p.visual.material=mat(accent,.85,.16,.8); add(p)
+
+    # Higher rarity adds authored-looking structural complexity, not a shared ring cage.
+    if tier>=2:
+        for i in range(2+tier):
+            a=phase+i*math.tau/(2+tier)
+            r=1.35+.08*(i%3)
+            add(mesh_sphere(.045+tier*.006,pale,point(r,a,.35*math.sin(a*2)),sub=2,metallic=.9,rough=.1,glow=1))
+    if tier>=4:
+        for side in (-1,1):
+            for row in range(2+tier//2):
+                x=side*(.35+row*.16)
+                add(tube([[x,-.35,.05],[x*1.6,.25,.12],[x*2.0,.85,.0],[x*1.25,1.35,-.1]],.035+tier*.002,accent if row%2 else pale))
+    if tier>=6:
+        # Grand, asymmetric celestial crown and suspended shards.
+        for i in range(12):
+            a=phase+i*math.tau/12
+            h=1.2+.35*math.sin(i*1.7)
+            add(crystal(h,pale,point(1.55,a,.2*math.cos(i)),.12))
+        for i in range(3):
+            pts=[]
+            for j in range(100):
+                q=j/99; a=phase+i*math.tau/3+q*math.tau*1.6
+                r=.4+1.8*q
+                pts.append((math.cos(a)*r,.5*math.sin(q*math.pi*2+i),math.sin(a)*r))
+            add(tube(pts,.028,accent))
+    # Unique per-ID microdetail, asymmetry and palette variation.
+    for i in range(4+seed%7+tier):
+        a=phase+i*2.399
+        p=point(.55+(i%4)*.29,a,float(rng.uniform(-.8,.8)))
+        add(mesh_sphere(.025+float(rng.random())*.045,pale,p,sub=2,metallic=.9,rough=.1,glow=.9))
+    return parts
+
+
 catalog_path=Path("supabase/aura_catalog.json")
 if not catalog_path.exists():
     raise SystemExit("supabase/aura_catalog.json is required to build unique aura assets")
@@ -524,31 +743,20 @@ catalog=json.loads(catalog_path.read_text(encoding="utf-8"))
 if len(catalog)!=1000 or len({a["id"] for a in catalog})!=1000:
     raise SystemExit("Aura catalog must contain exactly 1,000 unique IDs")
 
-MODEL_BUILD_LIMIT = 50
-BUILD_CATALOG = catalog[:MODEL_BUILD_LIMIT]
-print(f"Building {len(BUILD_CATALOG)} dedicated aura GLB models (IDs 1–50)")
+print(f"Building all {len(catalog)} name- and rarity-specific aura GLB models")
 
-for index,aura in enumerate(BUILD_CATALOG):
+for index,aura in enumerate(catalog):
     aura_id=aura["id"]
-    archetype=aura.get("model_id","origin")
-    if archetype not in PALETTE:
-        raise SystemExit(f"Unknown base model {archetype} for {aura_id}")
     seed=int.from_bytes(aura_id.encode("utf-8"),"little") % (2**32-1)
     rgb=css_rgb(aura.get("color","#8bdcff"))
-    accent=tuple(min(1.0,c*.58+.34) for c in rgb)
-    pale=tuple(min(1.0,c*.38+.58) for c in rgb)
     scene=trimesh.Scene()
-    source_parts=archetype_parts(archetype,rgb,seed,int(aura.get("tier",0)))
-    additions=unique_parts(aura,seed)
-    signatures=signature_parts(aura,seed)
-    for i,m in enumerate(source_parts+additions+signatures):
-        # Preserve the original geometry/material architecture, but tint each
-        # individual asset with its own palette and per-part metallic response.
+    parts=themed_parts(aura,seed)
+    for i,m in enumerate(parts):
         if hasattr(m,"visual"):
-            shade=0.78+((seed+i*37)%25)/100
-            base=rgb if i%5 in (0,1) else (accent if i%5 in (2,3) else pale)
+            shade=0.82+((seed+i*37)%19)/100
+            base=rgb if i%4 in (0,1) else (tuple(min(1,c*.58+.36) for c in rgb) if i%4==2 else tuple(min(1,c*.24+.72) for c in rgb))
             part_rgb=tuple(min(1.0,c*shade) for c in base)
-            m.visual.material=mat(part_rgb,.58+((seed+i)%38)/100,.10+((seed+i*3)%42)/100,.62+((seed+i*7)%35)/100)
+            m.visual.material=mat(part_rgb,.62+((seed+i)%32)/100,.09+((seed+i*3)%38)/100,.72+((seed+i*7)%28)/100)
         scene.add_geometry(m,geom_name=f"{aura_id}_mesh_{i:03d}",node_name=f"{aura_id}_part_{i:03d}")
     bounds=scene.bounds
     center=(bounds[0]+bounds[1])/2
@@ -557,7 +765,6 @@ for index,aura in enumerate(BUILD_CATALOG):
     transform=np.eye(4); transform[:3,:3]*=scale; transform[:3,3]=-center*scale
     scene.apply_transform(transform)
     out=OUT/f"{aura_id}.glb"
-    # Always rebuild: cached GLBs may contain the previous low-detail geometry.
     scene.export(out)
     if index%25==0 or index==len(catalog)-1:
         print(f"generated {index+1}/{len(catalog)}: {aura_id} ({out.stat().st_size} bytes)")
