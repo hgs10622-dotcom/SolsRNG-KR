@@ -823,9 +823,16 @@ def atelier_parts(aura, seed):
         radial=1+.10*np.sin(v[:,0]*9+phase)*np.cos(v[:,2]*7-phase)
         core.vertices=v*radial[:,None]
     elif core_kind==1:
-        core=trimesh.creation.octahedron()
+        vertices=np.array([
+            [0,.78,0],[0,-.72,0],[.58,0,0],[-.58,0,0],[0,0,.54],[0,0,-.54]
+        ],dtype=float)
+        faces=np.array([
+            [0,2,4],[0,4,3],[0,3,5],[0,5,2],
+            [1,4,2],[1,3,4],[1,5,3],[1,2,5]
+        ],dtype=int)
+        core=trimesh.Trimesh(vertices=vertices,faces=faces,process=True)
         core.apply_scale([float(rng.uniform(.48,.72)),float(rng.uniform(.62,.94)),float(rng.uniform(.48,.72))])
-        core.subdivide()
+        core=core.subdivide()
     elif core_kind==2:
         core=trimesh.creation.icosphere(subdivisions=2,radius=.52)
         v=core.vertices.copy()
