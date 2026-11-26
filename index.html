@@ -412,13 +412,39 @@ main[data-view="summon"] .actions{
  main[data-view="summon"]>.layout>.stage{grid-template-rows:24px minmax(90px,1fr) auto auto!important}
 }
 
+
+/* Cinematic rare-aura reveal */
+#rareReveal{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;overflow:hidden;background:#030711;opacity:0;visibility:hidden;transition:opacity .35s,visibility .35s}
+#rareReveal.active{opacity:1;visibility:visible}
+#rareReveal .scene-backdrop{position:absolute;inset:-12%;background:radial-gradient(ellipse at 50% 48%,color-mix(in srgb,var(--scene-color) 30%,transparent),transparent 33%),radial-gradient(ellipse at 50% 110%,#102b50 0,transparent 55%),linear-gradient(160deg,#030711,#10182d 55%,#050914);transform:scale(1.08);animation:sceneDrift 7s ease-in-out infinite alternate}
+#rareReveal[data-tier="4"] .scene-backdrop{background:radial-gradient(ellipse at 50% 48%,#ffd47766,transparent 28%),radial-gradient(ellipse at 50% 100%,#49311e,transparent 62%),linear-gradient(145deg,#080d19,#352719 55%,#080b14)}
+#rareReveal[data-tier="5"] .scene-backdrop{background:radial-gradient(ellipse at 50% 48%,#ff72c766,transparent 30%),radial-gradient(ellipse at 50% 100%,#471c52,transparent 62%),linear-gradient(145deg,#080817,#28152f 55%,#080b18)}
+#rareReveal[data-tier="6"] .scene-backdrop{background:radial-gradient(ellipse at 50% 48%,#65eaff88,transparent 29%),radial-gradient(ellipse at 50% 100%,#123d62,transparent 62%),linear-gradient(145deg,#030b18,#102b48 55%,#030711)}
+#rareReveal[data-tier="7"] .scene-backdrop{background:radial-gradient(ellipse at 50% 48%,#fff0a8aa,transparent 32%),radial-gradient(ellipse at 50% 100%,#594a25,transparent 65%),linear-gradient(145deg,#080914,#28254a 55%,#03050d)}
+#rareReveal .scene-grid{position:absolute;inset:-30%;opacity:.25;background-image:linear-gradient(#b8d9ff20 1px,transparent 1px),linear-gradient(90deg,#b8d9ff20 1px,transparent 1px);background-size:54px 54px;transform:perspective(500px) rotateX(64deg) scale(1.5);mask-image:radial-gradient(ellipse,#000,transparent 65%);animation:gridRise 8s linear infinite}
+#rareReveal .scene-halo{position:absolute;width:min(72vw,72vh,680px);aspect-ratio:1;border:1px solid color-mix(in srgb,var(--scene-color) 65%,white);border-radius:50%;box-shadow:0 0 55px color-mix(in srgb,var(--scene-color) 38%,transparent),inset 0 0 65px color-mix(in srgb,var(--scene-color) 22%,transparent);animation:haloOpen 2.8s cubic-bezier(.16,.8,.2,1) both}
+#rareReveal .scene-halo:before,#rareReveal .scene-halo:after{content:"";position:absolute;inset:9%;border:1px dashed color-mix(in srgb,var(--scene-color) 55%,transparent);border-radius:50%;animation:spin 22s linear infinite}
+#rareReveal .scene-halo:after{inset:19%;border-style:solid;opacity:.45;animation-direction:reverse;animation-duration:14s}
+#rareReveal .scene-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px;max-width:760px;width:100%;animation:sceneContent 2.7s cubic-bezier(.16,1,.3,1) both}
+#rareReveal .scene-eyebrow{font-size:11px;font-weight:950;letter-spacing:7px;color:var(--scene-color);text-shadow:0 0 18px var(--scene-color)}
+#rareReveal .scene-art{width:min(42vw,42vh,350px);height:min(42vw,42vh,350px);min-width:210px;min-height:210px;display:grid;place-items:center;filter:drop-shadow(0 0 35px color-mix(in srgb,var(--scene-color) 65%,transparent));animation:sceneFloat 3s ease-in-out infinite alternate}
+#rareReveal .scene-art svg{width:100%;height:100%;overflow:visible}
+#rareReveal .scene-tier{font-size:clamp(11px,1.6vw,15px);letter-spacing:8px;font-weight:950;color:var(--scene-color);margin-top:8px}
+#rareReveal .scene-name{font-size:clamp(25px,5vw,54px);line-height:1.2;font-weight:1000;letter-spacing:-1.5px;margin:12px 0;text-shadow:0 4px 28px #000}
+#rareReveal .scene-sub{color:#c1cde0;font-size:12px;letter-spacing:3px}
+#rareReveal .scene-skip{position:absolute;z-index:4;right:22px;top:20px;background:#ffffff12;border:1px solid #ffffff38;border-radius:99px;padding:10px 16px;font-size:12px;font-weight:800}
+#rareReveal .scene-particle{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--scene-color);box-shadow:0 0 16px 4px var(--scene-color);animation:particleRise 3s ease-out infinite}
+#rareReveal .scene-particle:nth-of-type(2){left:18%;top:70%;animation-delay:.4s}.scene-particle:nth-of-type(3){left:77%;top:62%;animation-delay:1s}.scene-particle:nth-of-type(4){left:28%;top:28%;animation-delay:1.5s}.scene-particle:nth-of-type(5){left:69%;top:24%;animation-delay:.8s}
+@keyframes sceneDrift{to{transform:scale(1.18) rotate(2deg)}}@keyframes gridRise{to{transform:perspective(500px) rotateX(64deg) scale(1.5) translateY(70px)}}@keyframes haloOpen{0%{transform:scale(.08) rotate(-40deg);opacity:0}45%{opacity:1}100%{transform:scale(1) rotate(0);opacity:.8}}@keyframes sceneContent{0%{opacity:0;transform:translateY(40px) scale(.75);filter:blur(12px)}35%{opacity:1;filter:blur(0)}100%{transform:translateY(0) scale(1)}}@keyframes sceneFloat{to{transform:translateY(-13px) scale(1.035)}}@keyframes particleRise{0%{transform:translateY(50px) scale(.3);opacity:0}30%{opacity:1}100%{transform:translateY(-150px) scale(1.4);opacity:0}}
+@media(prefers-reduced-motion:reduce){#rareReveal *{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+
 </style><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./supabase-config.js"></script></head><body>
 <header class="top"><div class="brand">AETHER<span> RNG</span></div><div class="version">WEB AURA SIMULATOR · v0.5.0</div></header>
 <main><section class="hero"><small>THE WORLD OF CHANCE</small><h1>운명을 뽑아라</h1><p>수많은 오라 중 단 하나의 특별한 빛을 찾아보세요.</p></section>
 <div class="layout"><section class="panel stage" id="summonStage"><div class="stagehead"><span>✦ 소환 게이트</span><span>행운 x1.00</span></div><div class="orb" id="orb" aria-label="획득 오라 시각화"></div><div class="result"><div class="rarity" id="rarity">READY TO ROLL</div><h2 id="auraName">아직 뽑지 않았어요</h2><p id="desc">버튼을 눌러 첫 번째 오라를 획득하세요.</p></div><div class="actions"><button class="primary" id="roll">✦ 오라 뽑기</button><button class="secondary" id="auto">자동 뽑기 시작</button><button class="secondary" id="equip" disabled>장착하기</button></div></section>
 <aside class="side"><section class="panel stats"><div class="heading">온라인 계정</div><div id="authStatus" style="font-size:12px;color:#91a0b8;margin-bottom:10px">서버 연결 확인 중...</div><input class="search" id="authUsername" type="text" placeholder="아이디 (3~20자, 영문·숫자·_)" maxlength="20" autocomplete="username" autocapitalize="none" spellcheck="false" style="width:100%;margin-bottom:8px"><input class="search" id="authPassword" type="password" placeholder="비밀번호 (8자 이상)" minlength="8" maxlength="128" autocomplete="current-password" style="width:100%;margin-bottom:8px"><div class="actions"><button class="primary" id="signUp">회원가입</button><button class="secondary" id="signIn">로그인</button><button class="secondary" id="signOut" style="display:none">로그아웃</button></div><p style="font-size:11px;color:#8192ad;line-height:1.6">이메일 입력 없이 아이디와 비밀번호만으로 가입·로그인합니다. 오라와 기록은 계정에 저장됩니다.</p></section><section class="panel stats"><div class="heading">내 기록</div><div class="statgrid"><div class="stat"><small>총 뽑기 횟수</small><b id="rolls">0</b></div><div class="stat"><small>발견한 오라</small><b id="found">0 / 1,000</b></div><div class="stat"><small>최고 희귀도</small><b id="best">-</b></div><div class="stat"><small>현재 장착</small><b id="equipped">없음</b></div></div></section><section class="panel stats"><div class="heading">희귀도 기본 확률</div><div class="odds" id="odds"></div></section><section class="panel stats"><div class="heading">설정</div><label class="toggle"><input type="checkbox" id="skip"> 연출 간소화</label> <label class="toggle"><input type="checkbox" id="sound"> 효과음</label><p style="font-size:11px;color:#8293ad;line-height:1.6">진행 상황은 현재 브라우저에 자동 저장됩니다.</p></section></aside></div>
-<div class="tabs"><button class="tab active" data-tab="summon">소환</button><button class="tab" data-tab="inventory">인벤토리</button><button class="tab" data-tab="index">오라 도감</button><button class="tab" data-tab="odds">확률표</button><button class="tab" data-tab="leaderboard">랭킹</button><button class="tab" data-tab="info">정보 / 저장</button></div><section class="panel content" id="content"></section><div class="footer">AETHER RNG v0.5.0 · 오리지널 오라 수집 시뮬레이터 · 현금 결제 없음</div></main><div class="toast" id="toast"></div><div class="aura-detail" id="auraDetail" hidden onclick="if(event.target===this)closeAuraDetail()"><section class="aura-detail-card"><button class="aura-detail-close" onclick="closeAuraDetail()" aria-label="닫기">×</button><div id="auraDetailBody"></div></section></div>
+<div class="tabs"><button class="tab active" data-tab="summon">소환</button><button class="tab" data-tab="inventory">인벤토리</button><button class="tab" data-tab="index">오라 도감</button><button class="tab" data-tab="odds">확률표</button><button class="tab" data-tab="leaderboard">랭킹</button><button class="tab" data-tab="info">정보 / 저장</button></div><section class="panel content" id="content"></section><div class="footer">AETHER RNG v0.5.0 · 오리지널 오라 수집 시뮬레이터 · 현금 결제 없음</div></main><div class="toast" id="toast"></div><div id="rareReveal" aria-hidden="true"><div class="scene-backdrop"></div><div class="scene-grid"></div><div class="scene-halo"></div><i class="scene-particle"></i><i class="scene-particle"></i><i class="scene-particle"></i><i class="scene-particle"></i><div class="scene-content"><div class="scene-eyebrow">AETHER · ANOMALY DETECTED</div><div class="scene-art" id="sceneArt"></div><div class="scene-tier" id="sceneTier"></div><div class="scene-name" id="sceneName"></div><div class="scene-sub" id="sceneSub">THE WORLD HAS CHOSEN YOU</div></div><button class="scene-skip" id="sceneSkip">건너뛰기</button></div><div class="aura-detail" id="auraDetail" hidden onclick="if(event.target===this)closeAuraDetail()"><section class="aura-detail-card"><button class="aura-detail-close" onclick="closeAuraDetail()" aria-label="닫기">×</button><div id="auraDetailBody"></div></section></div>
 <script>
 "use strict";
 const A=[
@@ -841,6 +867,18 @@ async function authAction(kind){
  finally{$("signUp").disabled=false;$("signIn").disabled=false}
 }
 async function getRoll(){if(!sb||!currentUser)throw new Error("먼저 로그인하세요.");let {data,error}=await sb.rpc("roll_aura");if(error)throw error;let row=Array.isArray(data)?data[0]:data;let a=A.find(x=>x.id===row?.result_aura_id);if(!a)throw new Error("서버에서 알 수 없는 오라가 반환되었습니다.");return a}
+
+function showRareScene(a){
+ if(!a||a.tier<4||$("skip").checked)return Promise.resolve();
+ const el=$("rareReveal"),color=a.color||"#fff0a6";
+ el.dataset.tier=String(a.tier);el.style.setProperty("--scene-color",color);
+ $("sceneArt").innerHTML=orbMarkup(a);$("sceneTier").textContent=(a.rarity||"LEGENDARY").toUpperCase()+" · "+(a.tier>=7?"TRANSCENDENT":a.tier===6?"CELESTIAL":a.tier===5?"MYTHIC":"LEGENDARY");
+ $("sceneName").textContent=a.name;$("sceneName").style.color=color;
+ $("sceneSub").textContent=a.tier>=7?"A ONCE-IN-AN-ETERNITY ARRIVAL":a.tier===6?"THE SKY ITSELF BENDS":"A RARE ANOMALY HAS AWAKENED";
+ el.classList.add("active");el.setAttribute("aria-hidden","false");
+ return new Promise(resolve=>{let done=false;const close=()=>{if(done)return;done=true;el.classList.remove("active");el.setAttribute("aria-hidden","true");$("sceneSkip").removeEventListener("click",close);resolve()};$("sceneSkip").addEventListener("click",close);setTimeout(close,2850)});
+}
+
 async function roll(){
  if(busy)return;
  if(onlineReady&&!currentUser){toast("온라인 뽑기는 계정 로그인 후 이용할 수 있습니다.");return}
@@ -853,7 +891,7 @@ async function roll(){
  };
  try{
   if($("skip").checked){let a=currentUser?await getRoll():pick();await finish(a);return}
-  orb.classList.add("rolling");let n=0,t=setInterval(()=>{setOrb(A[Math.floor(Math.random()*9)]);if(++n>=16){clearInterval(t);(async()=>{try{await finish(currentUser?await getRoll():pick())}catch(e){orb.classList.remove("rolling");busy=false;$("roll").disabled=false;toast(e.message||"뽑기에 실패했습니다.")}})()}},75);
+  orb.classList.add("rolling");let n=0,t=setInterval(()=>{setOrb(A[Math.floor(Math.random()*9)]);if(++n>=16){clearInterval(t);(async()=>{try{const result=currentUser?await getRoll():pick();await showRareScene(result);await finish(result)}catch(e){orb.classList.remove("rolling");busy=false;$("roll").disabled=false;toast(e.message||"뽑기에 실패했습니다.")}})()}},75);
  }catch(e){orb.classList.remove("rolling");busy=false;$("roll").disabled=false;toast(e.message||"뽑기에 실패했습니다.")}
 }
 $("roll").onclick=roll;
