@@ -3,7 +3,9 @@
 Roblox가 아닌 웹브라우저용 무료 오라 수집 시뮬레이터입니다.
 
 ## 기능
-- 1,000종 오라 데이터 / 8단계 희귀도 (1차 전용 GLB 모델 50종)
+- 1,000종 오라 데이터 / 8단계 희귀도
+- 1,000종 전용 GLB 3D 모델 생성 및 전시
+- 이름·설명·색상·희귀도 기반의 개별 조형 디자인
 - 서버에서 처리하는 확률 뽑기
 - 아이디 + 비밀번호만으로 회원가입 및 로그인 (이메일 입력 불필요)
 - Supabase 클라우드 저장: 인벤토리, 뽑기 횟수, 최고 희귀도, 장착 오라, 최근 기록
@@ -27,8 +29,10 @@ GitHub Pages: https://hgs10622-dotcom.github.io/SolsRNG-KR/
 
 ## 3D Aura Models
 
-Aura showcase models load on demand as GLB assets through Three.js GLTFLoader. The deployment pipeline generates 50 dedicated, locally hosted GLB models for the first 50 catalog entries. Each GLB is built from its own aura ID, rarity, palette, sculptural geometry, orbital structures, signature motif, and material setup; the remaining catalog entries retain the procedural fallback until their dedicated model batch is produced.
+The Pages build generates one locally hosted GLB model for every catalog entry (1,000 total). Each model is built deterministically from its own aura ID, Korean name, description, palette, and rarity tier. Name-led sculptural families (for example crystal, cosmos, flora, geode, vortex, wings, frost, spiral, sanctum, crown, comet, and blade) provide distinct primary silhouettes; per-aura geometry, asymmetry, orbit layout, accents, and tier details make each asset individual rather than reusing a small set of meshes with recolored materials.
 
-- Asset source and CC0 license: https://grab3d.com/developers/
-- Model files are loaded from the documented static download route: `https://grab3d.com/dl/{slug}/{file}`
-- Models are requested only when their aura is selected, rather than downloading the full collection at startup.
+Models are loaded on demand through Three.js GLTFLoader. The build also validates all 1,000 GLB files and publishes `assets/aura/manifest.json`, containing each model's catalog identity, file size, mesh count, bounds, and SHA-256 digest. The manifest validation fails the deployment if a model is missing, malformed, empty, or byte-identical to another model.
+
+- Source geometry is generated locally by `tools/generate_aura_models.py`.
+- Validation and manifest generation: `tools/validate_aura_models.py`.
+- No external model downloads are required during deployment.
