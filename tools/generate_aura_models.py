@@ -524,7 +524,11 @@ catalog=json.loads(catalog_path.read_text(encoding="utf-8"))
 if len(catalog)!=1000 or len({a["id"] for a in catalog})!=1000:
     raise SystemExit("Aura catalog must contain exactly 1,000 unique IDs")
 
-for index,aura in enumerate(catalog):
+MODEL_BUILD_LIMIT = 50
+BUILD_CATALOG = catalog[:MODEL_BUILD_LIMIT]
+print(f"Building {len(BUILD_CATALOG)} dedicated aura GLB models (IDs 1–50)")
+
+for index,aura in enumerate(BUILD_CATALOG):
     aura_id=aura["id"]
     archetype=aura.get("model_id","origin")
     if archetype not in PALETTE:

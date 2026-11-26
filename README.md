@@ -3,7 +3,7 @@
 Roblox가 아닌 웹브라우저용 무료 오라 수집 시뮬레이터입니다.
 
 ## 기능
-- 18종 오라 / 8단계 희귀도
+- 1,000종 오라 데이터 / 8단계 희귀도 (1차 전용 GLB 모델 50종)
 - 서버에서 처리하는 확률 뽑기
 - 아이디 + 비밀번호만으로 회원가입 및 로그인 (이메일 입력 불필요)
 - Supabase 클라우드 저장: 인벤토리, 뽑기 횟수, 최고 희귀도, 장착 오라, 최근 기록
@@ -27,7 +27,7 @@ GitHub Pages: https://hgs10622-dotcom.github.io/SolsRNG-KR/
 
 ## 3D Aura Models
 
-Aura showcase models load on demand as GLB assets through Three.js GLTFLoader. The current model manifest maps all 18 aura IDs to individual CC0 assets from Grab3D's public library. The built-in Three.js aura geometry remains as a fallback if an external model cannot load.
+Aura showcase models load on demand as GLB assets through Three.js GLTFLoader. The deployment pipeline generates 50 dedicated, locally hosted GLB models for the first 50 catalog entries. Each GLB is built from its own aura ID, rarity, palette, sculptural geometry, orbital structures, signature motif, and material setup; the remaining catalog entries retain the procedural fallback until their dedicated model batch is produced.
 
 - Asset source and CC0 license: https://grab3d.com/developers/
 - Model files are loaded from the documented static download route: `https://grab3d.com/dl/{slug}/{file}`
