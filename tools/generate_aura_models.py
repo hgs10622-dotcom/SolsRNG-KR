@@ -993,6 +993,350 @@ def atelier_parts(aura, seed):
     return parts
 
 
+
+
+def named_design_parts(aura):
+    """Create an explicit name-led sculpture recipe. No random seed or per-ID jitter."""
+    name=str(aura.get("name",""))
+    desc=str(aura.get("description",""))
+    words=name+" "+desc
+    tier=int(aura.get("tier",0))
+    rgb=css_rgb(aura.get("color","#8bdcff"))
+    accent=tuple(min(1.0,c*.62+.30) for c in rgb)
+    pale=tuple(min(1.0,c*.24+.70) for c in rgb)
+    deep=tuple(c*.20 for c in rgb)
+    parts=[]
+    def add(m): parts.append(m)
+    def point(r,a,y=0): return (math.cos(a)*r,y,math.sin(a)*r)
+
+    # The final noun determines the actual hero object, not a shared generic orb.
+    nouns=[
+      (("물방울","구슬","유리구슬","수정체","렌즈"),"droplet"),
+      (("별가루","별","성좌","별빛","성운핵","초신성","천체"),"star"),
+      (("나뭇잎","잎사귀","잎","새싹","고목","나무","덩굴"),"botanical"),
+      (("꽃잎","꽃씨","꽃","장미","연꽃","벚꽃","꽃불"),"flower"),
+      (("조약돌","모래알","파편","암석","빙정","빙벽","결정","수정"),"geode"),
+      (("물결","파동","파도","해류","물안개","파동"),"wave"),
+      (("깃털","날개","천상의날개","대천사","천둥새","환상수"),"wing"),
+      (("구름","숨결","안개","장막","유영체"),"veil"),
+      (("반딧불","불씨","불꽃","화염","태양핵","불꽃왕"),"flame"),
+      (("눈송이","서리","얼음","빙하","빙정"),"frost"),
+      (("달팽이","나선","회랑","무한회랑","영원회귀"),"spiral"),
+      (("고리","월륜","달","월광성"),"orbit"),
+      (("왕관","왕좌","왕","군주","별의군주","만상의왕"),"regalia"),
+      (("검","성검","칼날","화살","가시","창"),"weapon"),
+      (("성역","성당","대성당","수정궁","천궁","궁전"),"sanctuary"),
+      (("관문","문","차원문","창세문","시간문","은하수문","천공문","무경계문"),"portal"),
+      (("탑","빛의탑","시계탑","광휘의탑"),"tower"),
+      (("눈","별의눈","심판의눈","태초의눈","창공의눈"),"eye"),
+      (("핵","영혼핵","차원핵","우주심장","별의심장","존재의핵","창조핵"),"heart"),
+      (("심판자","빛의심판"),"sentinel"),
+      (("대균열","균열"),"rift"),
+      (("혜성","혜성핵","유성","운석"),"comet"),
+      (("태양","광휘체","절대광휘","창조의빛"),"solar"),
+      (("종언","종착점","시작점","근원","오리진","모든것의시작"),"monolith"),
+      (("성천문","영광의문","절대영역","무한성"),"cosmic_arch"),
+    ]
+    hero="relic"
+    for terms,key in nouns:
+        if any(t in words for t in terms):
+            hero=key
+            break
+
+    # Prefix/subject and descriptive phrase are explicit design controls.
+    theme_rules=[
+      (("새벽","여명"),"dawn"),(("은빛","은","실버"),"silver"),
+      (("화염","불꽃","태양"),"fire"),(("심해","바다","해류"),"abyss"),
+      (("성운","은하","우주","별"),"cosmos"),(("특이점","블랙홀"),"void"),
+      (("오로라","천상","세라프"),"heaven"),(("오리진","창세","기원"),"genesis"),
+      (("시간","크로노스"),"time"),(("얼음","빙하","서리"),"ice"),
+      (("숲","자연","생명"),"nature"),(("폭풍","번개","천둥"),"storm"),
+    ]
+    theme="arcane"
+    for terms,key in theme_rules:
+        if any(t in words for t in terms):
+            theme=key
+            break
+    modifier_rules=[
+      (("투명한","유리"),"crystal"),(("은은한","고요한","평온한"),"serene"),
+      (("부드러운","몽글한","구름"),"soft"),(("날카로운","가시","검"),"razor"),
+      (("타오르는","불타는","영원히 타오르는"),"blazing"),
+      (("얼어붙은","차가운","빙결"),"frozen"),(("흐르는","유영","물결"),"flow"),
+      (("찬란한","빛나는","광휘"),"radiant"),(("고대의","천 년","잠든"),"ancient"),
+      (("시간을 가르는","시간과 공간","시공간"),"temporal"),
+      (("차원을 비추는","모든 차원","차원"),"dimensional"),
+      (("운명을","심판","다스리는"),"fated"),
+      (("꿈속","환영","숨은"),"dream"),
+      (("창조","모든 존재","근원"),"creation"),
+      (("영원한","영원히","무한"),"eternal"),
+      (("축복","성스러운","천상의"),"blessed"),
+      (("뒤트는","균열","삼키는"),"fractured"),
+    ]
+    modifier="prismatic"
+    for terms,key in modifier_rules:
+        if any(t in words for t in terms):
+            modifier=key
+            break
+
+    # Main sculptural object: every noun family has a different silhouette language.
+    if hero=="droplet":
+        core=mesh_sphere(.64,rgb,(0,0,0),(.68,1.38,.72),sub=4,metallic=.78,rough=.08,glow=.75); add(core)
+        add(crystal(1.0,pale,(0,.78,0),.19))
+        for a in (0,math.pi):
+            add(tube([point(.48,a,-.55),point(.62,a,-.05),point(.4,a,.52)],.035,accent))
+    elif hero=="star":
+        for i in range(8):
+            a=math.tau*i/8
+            add(sculpted_shard(1.15 if i%2==0 else .72,.16,.14,pale if i%2==0 else accent,100+i,point(.32,a,.04),a))
+        add(mesh_sphere(.34,rgb,(0,0,0),sub=3,metallic=.9,rough=.1,glow=1))
+        add(torus(.82,.025,accent,(.22,.9,.18),128,10))
+    elif hero=="botanical":
+        add(cyl((0,-1.1,0),(0,.72,0),.055,deep,10))
+        for side in (-1,1):
+            for row in range(3):
+                y=-.45+row*.48; x=side*(.34+row*.12)
+                leaf=mesh_sphere(.38,accent,(x,y,.05),(.22,1.42,.18),4,.45,.28,.55)
+                leaf.apply_transform(trimesh.transformations.rotation_matrix(side*.62,[0,0,1])); add(leaf)
+                add(tube([[0,y-.12,.08],[x,y,.12],[x*1.08,y+.32,.08]],.022,pale))
+    elif hero=="flower":
+        add(mesh_sphere(.27,deep,(0,0,0),sub=3,metallic=.7,rough=.18,glow=.6))
+        for i in range(9):
+            a=math.tau*i/9
+            p=mesh_sphere(.43,accent,point(.42,a,.08),(.38,1.42,.22),4,.52,.2,.7)
+            p.apply_transform(trimesh.transformations.rotation_matrix(a,[0,1,0])); add(p)
+            add(sculpted_shard(.5,.09,.08,pale,200+i,point(.9,a,.12),a))
+    elif hero=="geode":
+        core=trimesh.creation.icosphere(subdivisions=2,radius=.72)
+        core.apply_scale([1,.78,.9]); core.visual.material=mat(deep,.95,.2,.2); add(core)
+        for i in range(12):
+            a=math.tau*i/12
+            add(sculpted_shard(.45+(i%4)*.2,.13,.12,accent if i%3 else pale,300+i,point(.62,a,.12*math.sin(a)),a))
+    elif hero=="wave":
+        for layer in range(5):
+            pts=[]
+            for j in range(80):
+                q=j/79; x=-1.45+2.9*q
+                y=(layer-2)*.22+math.sin(q*math.tau*1.4+layer*.8)*(.22+layer*.025)
+                z=.18*math.cos(q*math.tau+layer*.6)
+                pts.append((x,y,z))
+            add(tube(pts,.035+layer*.004,accent if layer%2 else pale))
+        add(mesh_sphere(.24,deep,(0,0,0),sub=3,metallic=.8,rough=.12,glow=.45))
+    elif hero=="wing":
+        for side in (-1,1):
+            for row in range(5):
+                x=side*(.2+row*.14)
+                add(sculpted_shard(1.1-row*.08,.14,.07,pale if row%2 else accent,400+row,(side*(.52+row*.16),.22+row*.13,-.08),side*.16))
+                add(tube([[side*.12,-.22,0],[x,.18+row*.12,.06],[side*(.92+row*.14),.76+row*.1,-.1],[side*(.62+row*.18),1.0+row*.08,-.12]],.027,pale))
+    elif hero=="veil":
+        for layer in range(7):
+            pts=[]
+            for j in range(70):
+                q=j/69; x=-1.1+2.2*q
+                pts.append((x,(layer-3)*.17+math.sin(q*math.tau+layer)*.24,.28*math.cos(q*math.tau*1.2+layer)))
+            add(tube(pts,.028+layer*.002,accent if layer%2 else pale))
+        for x in (-.6,0,.6): add(mesh_sphere(.18,pale,(x,.05,.12),sub=3,glow=.8))
+    elif hero=="flame":
+        add(mesh_sphere(.42,deep,(0,-.15,0),sub=3,metallic=.4,rough=.2,glow=1))
+        for i in range(11):
+            a=math.tau*i/11
+            add(sculpted_shard(1.0+(i%4)*.18,.12,.1,pale if i%3==0 else accent,500+i,point(.48,a,.05),a))
+        add(torus(.72,.035,accent,(.2,.8,.2),112,12))
+    elif hero=="frost":
+        for i in range(6):
+            a=math.tau*i/6
+            add(cyl((0,0,0),point(1.28,a,0),.055,pale,8))
+            for side in (-1,1):
+                add(cyl(point(.58,a,0),point(.98,a+side*.32,.12),.032,accent,7))
+            add(crystal(.42,pale,point(1.25,a,0),.08))
+        add(mesh_sphere(.22,rgb,(0,0,0),sub=3,metallic=.8,rough=.1,glow=.8))
+    elif hero=="spiral":
+        for i in range(3):
+            pts=[]
+            for j in range(140):
+                q=j/139; a=q*math.tau*(2.6+i*.24)+i*math.tau/3
+                r=.18+q*(.78+i*.13)
+                pts.append((math.cos(a)*r,(q-.5)*2.1,math.sin(a)*r))
+            add(tube(pts,.035-i*.005,accent if i%2 else pale))
+    elif hero=="orbit":
+        add(mesh_sphere(.5,rgb,(0,0,0),sub=3,metallic=.8,rough=.12,glow=.55))
+        for i,axis in enumerate(((1,.2,.1),(.2,1,.3),(.1,.3,1))):
+            add(torus(.82+i*.16,.035 if i==0 else .022,accent if i%2 else pale,axis,128,12))
+    elif hero=="regalia":
+        add(torus(.7,.075,accent,(.1,1,.1),128,16))
+        for i in range(9):
+            a=math.tau*i/9
+            add(sculpted_shard(.85+(i%3)*.2,.14,.12,pale,600+i,point(.72,a,.36),a))
+        add(mesh_sphere(.25,rgb,(0,0,0),sub=3,metallic=.9,rough=.1,glow=.7))
+    elif hero=="weapon":
+        add(sculpted_shard(2.35,.2,.1,pale,700,(0,0,0),.12))
+        add(cyl((-.42,-.78,0),(.42,-.78,0),.07,accent,12))
+        add(cyl((0,-.78,0),(0,-1.18,0),.08,deep,10))
+        for side in (-1,1):
+            add(sculpted_shard(.72,.1,.07,accent,701+side,(side*.18,-.52,0),side*.18))
+    elif hero=="sanctuary":
+        for side in (-1,1):
+            x=side*.68
+            add(cyl((x,-1,0),(x,.9,0),.105,accent,12))
+            add(crystal(.72,pale,(x,1.15,0),.14))
+        add(torus(.82,.055,pale,(.08,.05,1),128,14))
+        add(mesh_sphere(.28,rgb,(0,0,0),sub=3,metallic=.8,rough=.12,glow=.8))
+    elif hero=="portal" or hero=="cosmic_arch":
+        for i in range(3):
+            add(torus(.68+i*.23,.045-i*.006,pale if i%2 else accent,(.1+i*.24,.05,1),144,14))
+        for side in (-1,1):
+            add(cyl((side*.76,-1.05,0),(side*.76,1.05,0),.075,accent,12))
+    elif hero=="tower":
+        add(trimesh.creation.box(extents=(.58,1.8,.48)))
+        parts[-1].visual.material=mat(deep,.82,.22,.45)
+        for level in range(4):
+            y=-.65+level*.43
+            add(torus(.43-level*.035,.045,accent,(0,1,0),72,12))
+        add(crystal(.72,pale,(0,1.22,0),.18))
+    elif hero=="eye":
+        add(mesh_sphere(.72,deep,(0,0,0),(1.3,.66,.38),sub=4,metallic=.7,rough=.12,glow=.3))
+        add(mesh_sphere(.31,accent,(0,0,.32),(.9,1,.42),sub=4,metallic=.35,rough=.12,glow=.8))
+        add(mesh_sphere(.13,pale,(0,0,.47),sub=3,metallic=.2,rough=.08,glow=1))
+        for side in (-1,1): add(sculpted_shard(.75,.12,.1,pale,800+side,(side*.78,.0,0),side*.3))
+    elif hero=="heart":
+        add(mesh_sphere(.46,accent,(-.24,.12,0),(.85,1.05,.75),sub=4,metallic=.72,rough=.13,glow=.8))
+        add(mesh_sphere(.46,pale,(.24,.12,0),(.85,1.05,.75),sub=4,metallic=.72,rough=.13,glow=.8))
+        add(sculpted_shard(.9,.25,.2,deep,810,(0,-.38,0),0))
+        add(torus(.78,.025,pale,(.3,.8,.2),112,10))
+    elif hero=="sentinel":
+        add(mesh_sphere(.34,deep,(0,.58,0),sub=3,metallic=.8,rough=.15,glow=.5))
+        for side in (-1,1):
+            add(sculpted_shard(1.5,.2,.16,pale,820+side,(side*.34,-.05,0),side*.12))
+            add(tube([[side*.24,-.55,0],[side*.48,-.12,.1],[side*.4,.42,0]],.07,accent))
+    elif hero=="rift":
+        for i in range(9):
+            a=math.tau*i/9
+            add(tube([point(.3,a,-.9),point(.8,a+.18,0),point(1.12,a-.12,.8)],.045,accent if i%2 else pale))
+        add(mesh_sphere(.25,deep,(0,0,0),sub=3,metallic=1,rough=.03,glow=.05))
+    elif hero=="comet":
+        add(mesh_sphere(.52,rgb,(.42,0,0),sub=4,metallic=.8,rough=.1,glow=.8))
+        for i in range(7):
+            z=(i-3)*.12
+            add(tube([(-1.9,-.12,z),(-1.2,.12+z,.06),(-.4,.08,z*.6),(.15,0,0)],.025+(i%3)*.008,pale if i%2 else accent))
+    elif hero=="solar":
+        add(mesh_sphere(.72,rgb,(0,0,0),sub=4,metallic=.4,rough=.22,glow=1))
+        for i in range(16):
+            a=math.tau*i/16
+            add(sculpted_shard(.55+(i%4)*.16,.09,.09,pale,900+i,point(1.0,a,0),a))
+    elif hero=="monolith":
+        add(trimesh.creation.box(extents=(.72,1.72,.56)))
+        parts[-1].visual.material=mat(deep,.92,.14,.55)
+        for side in (-1,1):
+            add(tube([[side*.34,-.9,.3],[side*.52,-.25,.32],[side*.28,.42,.32],[0,1.05,.32]],.045,pale))
+        add(crystal(.82,accent,(0,1.22,0),.18))
+    else:
+        add(mesh_sphere(.48,rgb,(0,0,0),sub=3,metallic=.82,rough=.14,glow=.65))
+        for i in range(7):
+            a=math.tau*i/7
+            add(sculpted_shard(.7+(i%3)*.2,.12,.1,accent,1000+i,point(.7,a,.08),a))
+
+    # Modifier adds a structural language, not a random cosmetic variation.
+    if modifier in ("crystal","ancient","prismatic"):
+        for side in (-1,1):
+            add(sculpted_shard(1.15,.12,.11,pale,1100+side,(side*.82,.05,.12),side*.2))
+    elif modifier in ("serene","soft"):
+        for i in range(3):
+            add(mesh_sphere(.18+i*.035,pale,point(.9+i*.16,math.tau*i/3,.24*i),sub=3,metallic=.18,rough=.08,glow=.75))
+    elif modifier in ("razor","fractured"):
+        for i in range(5):
+            a=math.tau*i/5
+            add(sculpted_shard(1.0+(i%2)*.35,.08,.07,accent,1200+i,point(1.0,a,.2),a))
+    elif modifier in ("blazing","radiant"):
+        add(torus(1.28,.025,pale,(.4,.2,1),144,10))
+        for i in range(8):
+            a=math.tau*i/8
+            add(cyl(point(.88,a,0),point(1.35,a,.08),.025,accent,7))
+    elif modifier=="frozen":
+        for i in range(6):
+            a=math.tau*i/6
+            add(crystal(.6,pale,point(1.0,a,.2),.09))
+    elif modifier=="flow":
+        for side in (-1,1):
+            add(tube([(side*.15,-1.1,0),(side*.72,-.3,.2),(side*.3,.45,.1),(side*1.0,1.15,0)],.032,accent))
+    elif modifier in ("temporal","dimensional"):
+        for i in range(3):
+            axis=((1,.2,.1),(.1,1,.3),(.2,.3,1))[i]
+            add(torus(.92+i*.18,.018,pale if i%2 else accent,axis,128,8))
+    elif modifier in ("fated","blessed","creation","eternal"):
+        for side in (-1,1):
+            add(tube([[0,-1.2,0],[side*.5,-.4,.1],[side*.36,.45,.1],[0,1.25,0]],.04,pale))
+        add(mesh_sphere(.12,pale,(0,1.35,0),sub=3,glow=1))
+    elif modifier=="dream":
+        for i in range(5):
+            a=math.tau*i/5
+            add(mesh_sphere(.12,pale,point(1.25,a,.3*math.sin(a*2)),sub=3,glow=.9))
+
+    # The theme determines the outer architecture and palette treatment.
+    if theme in ("dawn","heaven","genesis"):
+        for i in range(2):
+            add(torus(1.48+i*.16,.025,pale,(.25+i*.2,.1,1),144,10))
+        for side in (-1,1):
+            add(tube([[side*.3,-.7,0],[side*.72,-.1,.12],[side*.5,.65,0],[side*.18,1.28,0]],.045,accent))
+    elif theme in ("silver","ice"):
+        for i in range(6):
+            a=math.tau*i/6
+            add(cyl(point(.5,a,-.2),point(1.48,a,.2),.025,pale,8))
+            add(mesh_sphere(.07,accent,point(1.5,a,.2),sub=2,metallic=.95,rough=.08,glow=.8))
+    elif theme in ("fire","storm"):
+        for side in (-1,1):
+            pts=[(side*.12,-1.2,0),(side*.7,-.45,.1),(side*.34,.25,.0),(side*1.2,1.15,.1)]
+            add(tube(pts,.045,accent))
+    elif theme in ("abyss","void"):
+        add(mesh_sphere(.22,deep,(0,0,0),sub=3,metallic=1,rough=.025,glow=.02))
+        add(torus(1.32,.065,accent,(.3,.8,.2),144,16))
+    elif theme=="cosmos":
+        for i in range(12):
+            a=math.tau*i/12
+            add(mesh_sphere(.035,pale,point(1.55,a,.35*math.sin(a*3)),sub=2,metallic=.9,rough=.1,glow=1))
+    elif theme=="time":
+        add(torus(1.38,.06,pale,(.15,.1,1),144,14))
+        for i in range(12):
+            a=math.tau*i/12
+            add(cyl(point(1.15,a,.12),point(1.34,a,.12),.025,accent,8))
+    elif theme=="nature":
+        for side in (-1,1):
+            add(tube([[0,-1.1,0],[side*.45,-.25,.05],[side*.9,.35,.1],[side*.72,1.2,0]],.04,accent))
+
+    # Tier changes the scale of the composition: lower tiers are a compact relic;
+    # apex tiers become complete monumental sculptures with independent substructures.
+    if tier>=2:
+        add(trimesh.creation.annulus(r_min=.92,r_max=1.02,height=.055,sections=96))
+        parts[-1].visual.material=mat(accent,.8,.16,.7)
+    if tier>=3:
+        for side in (-1,1):
+            add(cyl((side*.92,-1.05,0),(side*.92,1.1,0),.055,pale,12))
+            add(crystal(.72,pale,(side*.92,1.35,0),.12))
+    if tier>=4:
+        add(torus(1.72,.028,pale,(.24,.18,1),160,12))
+        for i in range(8):
+            a=math.tau*i/8
+            add(sculpted_shard(.72,.1,.1,accent,1300+i,point(1.68,a,.18),a))
+    if tier>=5:
+        # Mythic designs gain a suspended second architecture around the hero form.
+        for i in range(4):
+            a=math.tau*i/4
+            add(tube([point(.38,a,-1.25),point(1.05,a+.22,-.2),point(1.52,a,1.0)],.045,pale))
+        add(torus(1.98,.035,accent,(.45,.2,.7),176,12))
+    if tier>=6:
+        # Celestial tier has a vaulted crown and radial buttresses.
+        for i in range(8):
+            a=math.tau*i/8
+            add(tube([point(.55,a,.65),point(1.18,a+.16,1.1),point(1.72,a,1.72)],.05,pale))
+        add(torus(2.16,.045,pale,(.1,.9,.2),176,14))
+    if tier>=7:
+        # Transcendent tier: monumental triad of nested, non-coplanar gates.
+        for i,axis in enumerate(((1,.1,.1),(.1,1,.25),(.25,.1,1))):
+            add(torus(1.38+i*.24,.045-i*.006,accent if i%2 else pale,axis,192,16))
+        for i in range(12):
+            a=math.tau*i/12
+            add(mesh_sphere(.075,pale,point(2.18,a,.55*math.sin(2*a)),sub=3,metallic=1,rough=.06,glow=1))
+
+    return parts
+
 catalog_path=Path("supabase/aura_catalog.json")
 if not catalog_path.exists():
     raise SystemExit("supabase/aura_catalog.json is required to build unique aura assets")
@@ -1004,16 +1348,16 @@ print(f"Building all {len(catalog)} name- and rarity-specific aura GLB models")
 
 for index,aura in enumerate(catalog):
     aura_id=aura["id"]
-    seed=int.from_bytes(aura_id.encode("utf-8"),"little") % (2**32-1)
     rgb=css_rgb(aura.get("color","#8bdcff"))
     scene=trimesh.Scene()
-    parts=themed_parts(aura,seed) + atelier_parts(aura,seed)
+    parts=named_design_parts(aura)
     for i,m in enumerate(parts):
         if hasattr(m,"visual"):
-            shade=0.78+((seed+i*37)%27)/100
-            base=rgb if i%4 in (0,1) else (tuple(min(1,c*.58+.36) for c in rgb) if i%4==2 else tuple(min(1,c*.24+.72) for c in rgb))
-            part_rgb=tuple(min(1.0,c*shade) for c in base)
-            m.visual.material=mat(part_rgb,.58+((seed+i*13)%39)/100,.075+((seed+i*3)%42)/100,.58+((seed+i*7)%48)/100)
+            # Material is determined by semantic design family and aura palette;
+            # no seed-based per-mesh color jitter.
+            if not getattr(m.visual, "material", None):
+                m.visual.material=mat(rgb,.72,.18,.72)
+
         scene.add_geometry(m,geom_name=f"{aura_id}_mesh_{i:03d}",node_name=f"{aura_id}_part_{i:03d}")
     bounds=scene.bounds
     center=(bounds[0]+bounds[1])/2
